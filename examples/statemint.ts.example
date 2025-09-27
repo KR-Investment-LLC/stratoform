@@ -1,0 +1,193 @@
+
+import { 
+    ResourceDefinition, // will need some state to know if its been resolved or not
+    DeploymentDefinition,
+    addProperty, 
+    addPropertyAlias,
+    deploy, 
+    properties,
+    resource,
+    lookup,
+    dependsOn,
+    on,
+    release 
+} from "@statement/core";
+import { 
+    ResourceGroup // All extend ResourceDefinition
+} from "@statemint/azure-resource";
+import { 
+    StorageAccountProperties,
+    StorageAccount, 
+    Blob,
+    FileShare // All extend ResourceDefinition
+} from "@statemint/azure-storage";
+import { 
+    ResuableBaseLandingZone
+} from "@someelses/base-landing-zone"; // someone elses template DeploymentDefinitionDefinition to create a landing zone in azure
+
+// INFO: All callbacks can be sync or async safely.
+
+/*
+ * INFO: deploy doesnt actually do ANYTHING but queue up all the definitios for runtime, i.e. validate, speculate, release, or delete
+ */
+deploy("WebAppFunction", (webAppFunctionDef: DeploymentDefinition) => {
+    /*
+     * INFO: Supported property types:
+     *       string, number, boolean, object, array<any of the types>
+     */
+    addProperty<string>({
+        name: "storageAccountThreeName",
+        defaultValue: "mystoraccthree", // optional, will default to null if not specified
+        validate: [
+            (value: string) => {
+                if(value.length > 24)
+                    throw "Invalid storage account name";
+            }
+        ]
+    });
+    addProperty<string>({
+        name: "environment",
+        defaultValue: "dev", // INFO: optional, will default to null if not specified
+    });
+    addProperty<string>({
+        name: "criticality",
+        defaultValue: "Tier1",
+    });
+    addProperty<boolean>({
+        name: "doSomeAction",
+        defaultValue: true, // INFO: optional, will default to false if not specified
+    });
+    addProperty<string>({
+        name: "subscrioptionName",
+        defaultValue: "MyWeppAppSub", // INFO: optional, will default to null if not specified
+    });
+    addProperty<Array<object>>({
+        name: "fileShares",
+        defaultValue: [], // INFO: optional, will default to null if not specified
+    });
+
+    // INFO: all event types
+    // on("beforeValidate", (webAppFunctionDef: DeploymentDefinition) => {});
+    // on("validate", (webAppFunctionDef: DeploymentDefinition) => {});
+    // on("afterValidate", (webAppFunctionDef: DeploymentDefinition) => {});
+    // on("validationError", (webAppFunctionDef: DeploymentDefinition, error: any) => {});
+    // on("beforeSpeculate", (webAppFunctionDef: DeploymentDefinition) => {});
+    // on("speculate", (webAppFunctionDef: DeploymentDefinition) => {});
+    // on("afterSpeculaste", (webAppFunctionDef: DeploymentDefinition) => {});
+    // on("speculationError", (webAppFunctionDef: DeploymentDefinition, error: any) => {});
+    // on("beforeDeploy", (webAppFunctionDef: DeploymentDefinition) => {});
+    on("deploy", (webAppFunctionDef: DeploymentDefinition) => {
+        const _fileShares = webAppFunctionDef.properties.get<Array<object>>("fileShares"); // property passed in
+        const _parentStorage = webAppFunctionDef.properties.get<StorageAccount>("MyStorageAccountOne"); // Just the resource definition so this is okay. Will make one if none exists then wait or fail if all deployment definitions are run an now resource by that name was registered.
+        
+        // Create a bunch of file shares.
+        for(let _fileShare of _fileShares) {
+            resource<FileShare>(`MyFileShare${_fileShare.name}`, (config: ResourceDefinition) => {
+                dependsOn(_parentStorage); // INFO: will register it based on the name, type ref is for safety
+                properties({ // INFO: knows what needs to be here from <FileShare>
+                    name: `file-share-${_fileShare.name}`,
+                    parent: _parentStorage // INFO: will know the parent
+                    // ...
+                });
+            });
+        }
+    });
+    // on("afterDeploy", (webAppFunctionDef: DeploymentDefinition) => {});
+    // on("DeploymentDefinitionError", (webAppFunctionDef: DeploymentDefinition, error: any) => {});
+    // on("beforeRelease", (webAppFunctionRelease: Release) => {});
+    // on("release", (webAppFunctionRelease: Release) => {});
+    // on("afterRelease", (webAppFunctionRelease: Release) => {});
+    // on("releaseError", (webAppFunctionRelease: DeploymentDefinition, error: any) => {});
+
+    /**
+     * INFO: this is basically like calling deploy
+     */
+    ResuableBaseLandingZone("MyBaseLandingZone", (baseLandingZoneDef: DeploymentDefinition) => { // adds it to the DeploymentDefinition list too, just like deploy invocation would
+        // INFO: can also do dependsOn(DeploymentDefinition | ResourceDefinition);
+        // INFO: Oops, we have a property name collision, need to alias a property
+        addPropertyAlias("fileShares", "baseLandingZoneFileShares"); // knows its for this deployment because its called in the callback
+
+        lookup<ResourceGroup>("YourResourceGroup", { // INFO: adds a resource definition to the deployment resources WITH a resolver
+            name: "YourResourceGroup"
+        }); // INFO: Look up a resource group
+
+        resource<ResourceGroup>("MyResourceGroupOne", (res: ResourceGroup) => { // INFO: The spec for properties call is define by resource generic
+            properties({ // INFO: knows what needs to be here from <ResourceGroup>
+                name: "MyResourceGroupOne",
+                location: "eastus2"
+                // ...
+            });
+        });
+
+        resource<ResourceGroup>("MyResourceGroupTwo", (res: ResourceGroup) => {
+            properties({
+                name: "MyResourceGroupTwo",
+                location: "eastus2"
+                // ...
+            });
+        });
+
+        resource<StorageAccount>("MyStorageAccountOne", (res: StorageAccount) => {
+            properties<StorageAccountProperties>({ // INFO: knows what needs to be here from <StorageAccount>
+                name: "mystoraccone",
+                resourceGroup: webAppFunctionDef.resources.get<ResourceGroup>("MyResourceGroupOne"), // automatic dependsOn
+                sku: StorageAccount.SomeAzureSKU
+                // ...
+            });
+        });
+
+        resource<StorageAccount>("MyStorageAccountTwo", (res: StorageAccount) => {
+            dependsOn("MyResourceGroupTwo"); // INFO: will look-up in the resource cach to see if it exists and then wait for it to be done.
+
+            properties({
+                name: "mystoracctwo",
+                resourceGroup: webAppFunctionDef.resources.get<ResourceGroup>("MyResourceGroupTwo"),
+                sku: StorageAccount.SomeAzureSKU
+                // ...
+            });
+        });
+
+        resource<StorageAccount>("MyStorageAccountThree", (res: StorageAccount) => {
+            dependsOn("SomeOtherResourceOrDeploymentDefinition");
+
+            properties({
+                name: webAppFunctionDef.properties.get<string>("storageAccountThreeName"),
+                resourceGroup: webAppFunctionDef.resources.get<ResourceGroup>("MyResourceGroupTwo"),
+                sku: StorageAccount.SomeAzureSKU
+                // ...
+            });
+
+            // INFO: child resource, dependancy automatic, checks internally by resource type if child elements are even allowed
+            resource<Blob>("MyBlob", (config: Blob) => {
+                properties({
+                    name: "myblob"
+                    // ...
+                });
+            });
+        });
+
+        resource<StorageAccount>("MyStorageAccountFour", (res: StorageAccount) => {
+            dependsOn("MyResourceGroupTwo"); // INFO: will look-up in the resource cach to see if it exists and then wait for it to be done.
+
+            properties({
+                name: "mystoraccfour",
+                resourceGroup: baseLandingZoneDef.resources.get<ResourceGroup>("BaseLandingZoneResourceGroup"),
+                sku: StorageAccount.SomeAzureSKU
+                // ...
+            });
+        });
+    });
+}); // INFO: returns a DeploymentDefinition
+
+const _properties = {
+    environment: "test",
+    fileShares: []
+} as Record<string, any>; // INFO: Can load this from JSON file
+const _config    = {}; // INFO: Can load this from JSON file
+
+await release(_properties, _config);
+
+// INFO: alternate runs of release();
+// await release(_properties);
+// await release(_config); // Config could specifie how to load variable from a json file automatically
+// await release();

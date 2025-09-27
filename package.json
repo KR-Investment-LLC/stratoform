@@ -1,0 +1,51 @@
+{
+  "name": "statemint",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "TypeScript based cloud resource manager",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "bin": {
+    "statemint": "src/index.ts"
+  },
+  "scripts": {
+    "test": "tsc",
+    "local": "tsx src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KR-Investment-LLC/statemint.git"
+  },
+  "keywords": [
+    "Cloud",
+    "Resource",
+    "AWS",
+    "Azure"
+  ],
+  "author": "KRI LLC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KR-Investment-LLC/statemint/issues"
+  },
+  "homepage": "https://github.com/KR-Investment-LLC/statemint#readme",
+  "dependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.5.2",
+    "moment": "^2.30.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^11.0.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2",
+    "shx": "^0.4.0",
+    "jest": "^30.1.3",
+    "jest-junit": "^16.0.0",
+    "ts-jest": "^29.4.4"
+  }
+}
