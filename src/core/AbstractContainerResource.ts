@@ -22,22 +22,33 @@
  * SOFTWARE.
  */
 
-import { ResourceDefinition } from "./ResourceDefinition.js"
+import { AbstractResource } from "./AbstractResource.js";
+import { IResource } from "./IResource.js";
+import { IResourceConfig } from "./IResourceConfig.js";
+import { IResourceContainer } from "./IResourceContainer.js";
+import { ResourceContainer } from "./ResourceContainer.js";
 
-/**
- * 
- */
-export class DeploymentDefinition {
-  public readonly name: string;
-  properties = new Map<string, any>();
-  resources = new Map<string, ResourceDefinition<any>>();
-  events: Map<string, Function[]> = new Map();
+export abstract class AbstractContainerResource<C extends IResourceConfig> extends AbstractResource<C> implements IResourceContainer<any> {
+    private _container: ResourceContainer<any>;
 
-  /**
-   * 
-   * @param name 
-   */
-  constructor(name: string) {
-    this.name = name;
-  }
+    constructor(name: string, renamable = true) {
+       super(name, renamable);
+       this._container = new ResourceContainer<any>(this);
+    }
+
+    addResource(resource: IResource<any>): IResource<any> {
+        return this._container.addResource(resource);
+    }
+
+    removeResource(resource: string | IResource<any>): IResource<any> | undefined {
+        return this._container.removeResource(resource);
+    }
+
+    getResource(resource: string): IResource<any> | undefined {
+        return this._container.getResource(resource);
+    }
+
+    get resources(): MapIterator<IResource<any>> {
+        return this._container.resources;
+    }
 }

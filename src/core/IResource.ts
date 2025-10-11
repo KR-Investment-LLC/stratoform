@@ -22,35 +22,32 @@
  * SOFTWARE.
  */
 
-import { 
-    Properties, 
-    ResourceDefinition 
-} from "../core/ResourceDefinition.js";
+import { IResourceConfig } from "./IResourceConfig.js";
 
-export interface AzureResourceProperties extends Properties {
-    name: string
-};
 
 /**
- * 
+ * @description
  */
-export abstract class AbstractAzureResource<P extends AzureResourceProperties> extends ResourceDefinition<P> {
-    public readonly tags: Record<string, string> = {};
+export enum SupportedMethods {
+    Create = "Create",
+    Read   = "Read",
+    List   = "List",
+    Update = "Update",
+    Delete = "Delete",
+    All    = "All"
+};
 
-    /**
-     * 
-     * @param name 
-     */
-    constructor(name: string) {
-        super(name);
-    }
 
-    /**
-     * @returns
-     */
-    abstract get provider(): string;
+/**
+ * @description
+ */
+export interface IResource<C extends IResourceConfig> {
+    name:                      string;
+    method:                    SupportedMethods | undefined;
+    config:                    C | undefined;
+    readonly resolved:         boolean;
+    readonly supportedMethods: SupportedMethods[];
+    readonly renamable:        boolean;
+}; 
 
-    abstract get type(): string;
-
-    abstract get apiVersion(): string;
-}
+export type ResourceCallback<R extends IResource<any>> = (resource: R) => Promise<void> | void;

@@ -22,53 +22,25 @@
  * SOFTWARE.
  */
 
-/**
- * 
- */
-export type ValidationFunction<T> = (value: T) => boolean;
+export class ResourceName {
+    private _previousName: string | undefined;
+    private _name: string;
 
-/**
- * 
- */
-export interface Validator<T> {
-    specification?: string;
-    failureMessage?: string;
-    validate: ValidationFunction<T>;
-}
+    public renamable: boolean = true;
 
-/**
- * 
- */
-export class Property<T> {
-    private _name:  string;
-    private _value: T | null = null;
-
-    public          required:     boolean             = true;
-    public          defaultValue: T      | null       = null;
-    public          description:  string | null       = null;
-    public readonly validations:  Array<Validator<T>> = [];
-
-    constructor(name: string) {
-        this._name = name;
+    constructor(name: string, renamable: boolean = true) {
+        this._name     = name;
+        this.renamable = renamable;
     }
 
     get name(): string {
         return this._name;
     }
 
-    get value(): T | null {
-        if(!this._value) return this.defaultValue;
-        else return this._value;
-    }
-
-    set value(val: T | null) {
-        if(val !== null) {
-            for(const v of this.validations) {
-            if(!v.validate(val))
-                throw new Error(v.failureMessage ?? `Validation failed for property '${this._name}'` + 
-                                (v.specification ? ` (spec: ${v.specification})` : ""));
-            }
-        }
-        this._value = val;
+    set name(name: string) {
+        if(!this.renamable)
+            throw new Error("Argument 'name' is not renamable.");
+        if(!this._previousName) this._previousName = name;
+        this._name = name;
     }
 }

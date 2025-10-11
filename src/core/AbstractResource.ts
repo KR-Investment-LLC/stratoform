@@ -22,34 +22,41 @@
  * SOFTWARE.
  */
 
-import { AbstractAzureResource } from "./AbstractAzureResource.js";
+import { IResource, SupportedMethods } from "./IResource.js";
+import { IResourceConfig } from "./IResourceConfig.js";
+import { ResourceName } from "./ResourceName.js";
 
-/**
- * 
- */
-export enum SubscrioptionWorkloads {
-    Production = "Production",
-    DevTest    = "DevTest"
-}
+export abstract class AbstractResource<C extends IResourceConfig> implements IResource<C> {
+    private   _name:            ResourceName;
+    protected _method:          SupportedMethods           = SupportedMethods.Create;
+    protected _resolved:        boolean                    = false;
+    public    config:           C | undefined              = undefined;
+    
+    constructor(name: string, renamable = true) {
+        this._name = new ResourceName(name, renamable);
+    }
 
-/**
- * 
- */
-export class Subscription extends AbstractAzureResource {
-    public readonly provider:   string = "Microsoft.Subscription";
-    public readonly type:       string = "aliases";
-    public readonly apiVersion: string = "2020-09-01";
+    get method(): SupportedMethods {
+        return this._method;
+    }
 
-    public alias:       null | string          = null;
-    public displayName: null | string          = null;
-    public workload:    SubscrioptionWorkloads = SubscrioptionWorkloads.Production;
+    get supportedMethods(): SupportedMethods[] {
+        return [SupportedMethods.All];
+    }
 
-    /**
-     * @description Creates a new Subscription with the name specified.
-     * @param name 
-     * @returns 
-     */
-    static factory(name: string): Subscription {
-        return new Subscription(name);
+    get renamable(): boolean {
+        return this._name.renamable;
+    }
+
+    get resolved(): boolean {
+        return this._resolved;
+    }
+
+    get name(): string {
+        return this._name.name;
+    }
+
+    set name(name: string) {
+        this._name.name = name;
     }
 }

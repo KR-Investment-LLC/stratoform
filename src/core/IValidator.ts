@@ -22,29 +22,16 @@
  * SOFTWARE.
  */
 
-import { AbstractAzureResource, AzureResourceProperties } from "./AbstractAzureResource.js";
+/**
+ * 
+ */
+export type ValidationFunction<T> = (value: T) => boolean;
 
 /**
  * 
  */
-export interface ResourceGroupProperties extends AzureResourceProperties {
-    //
-};
-
-/**
- * 
- */
-export class ResourceGroup extends AbstractAzureResource<ResourceGroupProperties> {
-    public readonly provider:   string = "";
-    public readonly type:       string = "resourcegroups";
-    public readonly apiVersion: string = "2021-04-01";
-
-    /**
-     * @description Creates a new Subscription with the name specified.
-     * @param name 
-     * @returns 
-     */
-    static create(name: string): ResourceGroup {
-        return new ResourceGroup(name);
-    }
+export interface IValidator<T> {
+    specification?: string;
+    failureMessage?: string;
+    validate: ValidationFunction<T>;
 }
