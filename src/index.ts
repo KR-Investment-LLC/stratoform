@@ -22,9 +22,3 @@
  * SOFTWARE.
  */
 
-/**
- * @description
- */
-export interface IResourceConfig {
-    [key: string]: any;
-}

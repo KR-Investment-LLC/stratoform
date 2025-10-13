@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * MIT License
  *
@@ -22,35 +23,24 @@
  * SOFTWARE.
  */
 
-import { IResource } from "./IResource.js";
+import { Command, Option } from "commander";
 
+const program = new Command()
+  .name("strato")
+  .description("Run Stratoform deployments from *.stratoform.ts files")
+  .version("0.1.0");
 
-/**
- * @description
- */
-export interface IResourceContainer<C extends IResource<any>> {
-    /**
-     * @description
-     * @param resource 
-     * @param callback 
-     */
-    addResource(resource: C): C;
+program
+  .option("-p, --patterns <globs...>", "Glob(s) to find *.stratoform.ts", ["deployments/**/*.stratoform.ts"])
+  .option("-C, --cwd <dir>", "Working directory", process.cwd())
+  .addOption(
+    new Option("--phase <names...>", "Lifecycle phase(s) to run")
+      .choices(["define","beforeValidate","afterValidate","beforeSpecutlate","afterSpecutlate","beforeDeploy","afterDeploy"])
+  )
+  .option("--dry-run", "Resolve/validate only, don’t deploy", false)
+  .option("-c, --concurrency <n>", "Max concurrent resources per phase", "0")
+  .addOption(new Option("--format <fmt>", "Output format").choices(["table","json"]).default("table"))
+  .option("-s, --select", "Interactive file selection", false)
+  .option("-v, --verbose", "Verbose output", false);
 
-    /**
-     * @description
-     * @param resource 
-     */
-    removeResource(resource: string | C): C | undefined;
-
-    /**
-     * @description
-     * @param resource 
-     */
-    getResource(resource: string): C | undefined;
-
-    /**
-     * @description
-     * @returns
-     */
-    get resources(): MapIterator<C>;
-}
+program.parseAsync();

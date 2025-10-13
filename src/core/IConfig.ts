@@ -22,41 +22,11 @@
  * SOFTWARE.
  */
 
-import { IResource, SupportedMethods } from "./IResource.js";
-import { IResourceConfig } from "./IResourceConfig.js";
-import { ResourceName } from "./ResourceName.js";
-
-export abstract class AbstractResource<C extends IResourceConfig> implements IResource<C> {
-    private   _name:            ResourceName;
-    protected _method:          SupportedMethods           = SupportedMethods.Create;
-    protected _resolved:        boolean                    = false;
-    public    config:           C | undefined              = undefined;
-    
-    constructor(name: string, renamable = true) {
-        this._name = new ResourceName(name, renamable);
-    }
-
-    get method(): SupportedMethods {
-        return this._method;
-    }
-
-    get supportedMethods(): SupportedMethods[] {
-        return [SupportedMethods.All];
-    }
-
-    get renamable(): boolean {
-        return this._name.renamable;
-    }
-
-    get resolved(): boolean {
-        return this._resolved;
-    }
-
-    get name(): string {
-        return this._name.name;
-    }
-
-    set name(name: string) {
-        this._name.name = name;
-    }
+/**
+ * @description
+ */
+export interface IConfig {
+    name: string,
+    id?: string,
+    [key: string]: any;
 }

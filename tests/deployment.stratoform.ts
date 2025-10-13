@@ -22,3 +22,57 @@
  * SOFTWARE.
  */
 
+import { Subnet } from "../src/azure/networking/Subnet";
+import { VirtualNetwork } from "../src/azure/networking/VirtualNetwork";
+import { ResourceGroup } from "../src/azure/ResourceGroup";
+import { Subscription, WorkloadType } from "../src/azure/Subscription";
+import { Deployment } from "../src/core/Deployment";
+import { Variable } from "../src/core/Variable";
+
+import { display } from "../src/runtime/banner";
+
+display();
+
+export default Deployment.define("MyApplicationInfrastructureDeployment", {}, 
+    (myApplicationInfrastructureDeployment) => {
+        myApplicationInfrastructureDeployment
+            // Add the variables
+            .addVariable(Variable.define<string>("environment", {
+                required: true
+            }))
+            .addVariable(Variable.define<string>("criticallity", {
+                required: true
+            }))
+            // Now the resources, starting with the subscription
+            .addResource(Subscription.define("MySubscriptionOne", {
+                name: "my-subscription-one-sub",
+                workloadType: WorkloadType.Production
+            }, 
+            (mySubscription: Subscription) => {
+                console.log(`Subscription defining '${mySubscription.config.name}'...`);
+                // add the first resource group.
+                mySubscription
+                    // Add the first resource group.
+                    .addResourceGroup(ResourceGroup.define("MyResourceGroupOne", {
+                            name: "my-resource-group-one-rg",
+                        }, 
+                        (myResourceGroupOne: ResourceGroup) => {
+                            // Add the VNET to resource group 1
+                            myResourceGroupOne.addVirtualNetwork(VirtualNetwork.define("MyVirtualNetworkOne", {
+                                name: "my-virtual-network-one-vnet"
+                            },
+                            (myVirtualNetworkOne: VirtualNetwork) => {
+                                // add the subnet
+                                myVirtualNetworkOne.addSubnet(Subnet.define("MyVirtualNetworkOneMainSubnet", {
+                                    name: "main-subnet"
+                            }));
+                        }));
+                    }))
+                    // Add the second resource group.
+                    .addResourceGroup(ResourceGroup.define("MyResourceGroupTwo", {
+                        name: "my-resource-group-two-rg",
+                    }, (myResourceGroupTwo: ResourceGroup) => {
+                        // Add the VNET to resource group 1
+                    }));
+            }));
+});

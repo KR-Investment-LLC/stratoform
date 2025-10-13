@@ -22,36 +22,14 @@
  * SOFTWARE.
  */
 
-import { IResourceConfig } from "./IResourceConfig.js";
-import { IResourceDependent } from "./IResourceDependent.js";
-
+import { Dependent } from "./Dependent";
 
 /**
  * 
  */
-export interface IResourceComposite<D extends IResourceDependent<any>> {
-    /**
-     * @description
-     * @param resource 
-     * @param callback 
-     */
-    addDependant(dependant: D): D;
-
-    /**
-     * @description
-     * @param dependant 
-     */
-    getDependant(dependant: string): D | undefined;
-
-    /**
-     * @description
-     * @param dependant 
-     */
-    removeDependant(dependant: string | D): D | undefined;
-
-    /**
-     * @description
-     * @returns
-     */
-    get dependents(): MapIterator<D>;
+export interface IComposite<D extends Dependent<any, any>> {
+    addResource(dependent: D): this;
+    removeResource(dependentOrName: D | string): D | undefined;
+    getResource(name: string): D | undefined;
+    readonly resources: Iterable<D>;
 }

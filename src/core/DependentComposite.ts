@@ -22,25 +22,28 @@
  * SOFTWARE.
  */
 
-export class ResourceName {
-    private _previousName: string | undefined;
-    private _name: string;
+import { Dependent } from "./Dependent";
+import { IComposite } from "./IComposite";
+import { CompositeKernel } from "./CompositeKernel";
+import { IConfig } from "./IConfig";
 
-    public renamable: boolean = true;
+/** Dependent + Composite in one base. Any dependent can also own dependents. */
+export abstract class DependentComposite<P, C extends IConfig, D extends Dependent<any, any>, E extends string = string> extends Dependent<P, C> implements IComposite<D> {
+    private readonly composite = new CompositeKernel<this, D>(this);
 
-    constructor(name: string, renamable: boolean = true) {
-        this._name     = name;
-        this.renamable = renamable;
+    addResource(dependent: D): this {
+        this.composite.addResource(dependent); return this;
     }
 
-    get name(): string {
-        return this._name;
+    removeResource(dependentOrName: D | string): D | undefined {
+        return this.composite.removeResource(dependentOrName);
     }
 
-    set name(name: string) {
-        if(!this.renamable)
-            throw new Error("Argument 'name' is not renamable.");
-        if(!this._previousName) this._previousName = name;
-        this._name = name;
+    getResource(name: string): D | undefined {
+        return this.composite.getResource(name);
+    }
+
+    get resources(): Iterable<D> {
+        return this.composite.resources;
     }
 }

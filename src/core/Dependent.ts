@@ -22,32 +22,12 @@
  * SOFTWARE.
  */
 
-import { IResourceConfig } from "./IResourceConfig.js";
-
-
-/**
- * @description
- */
-export enum SupportedMethods {
-    Create = "Create",
-    Read   = "Read",
-    List   = "List",
-    Update = "Update",
-    Delete = "Delete",
-    All    = "All"
-};
-
+import { IConfig } from "./IConfig";
+import { Resource } from "./Resource";
 
 /**
- * @description
+ * 
  */
-export interface IResource<C extends IResourceConfig> {
-    name:                      string;
-    method:                    SupportedMethods | undefined;
-    config:                    C | undefined;
-    readonly resolved:         boolean;
-    readonly supportedMethods: SupportedMethods[];
-    readonly renamable:        boolean;
-}; 
-
-export type ResourceCallback<R extends IResource<any>> = (resource: R) => Promise<void> | void;
+export abstract class Dependent<P, C extends IConfig> extends Resource<C> {
+    public parent!: P; // set by the parent when added
+}

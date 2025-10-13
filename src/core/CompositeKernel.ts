@@ -22,33 +22,41 @@
  * SOFTWARE.
  */
 
-import { AbstractResource } from "./AbstractResource.js";
-import { IResource } from "./IResource.js";
-import { IResourceConfig } from "./IResourceConfig.js";
-import { IResourceContainer } from "./IResourceContainer.js";
-import { ResourceContainer } from "./ResourceContainer.js";
+import { Dependent } from "./Dependent";
+import { IComposite } from "./IComposite";
 
-export abstract class AbstractContainerResource<C extends IResourceConfig> extends AbstractResource<C> implements IResourceContainer<any> {
-    private _container: ResourceContainer<any>;
+/** 
+ * Reusable manager for dependents; enforces parent wiring to Self. 
+ */
+export class CompositeKernel<Owner, D extends Dependent<Owner, any>> implements IComposite<D> {
+    private readonly _resources = new Map<string, D>();
+    private readonly _owner: Owner
 
-    constructor(name: string, renamable = true) {
-       super(name, renamable);
-       this._container = new ResourceContainer<any>(this);
+    constructor(owner: Owner) {
+        this._owner = owner;
     }
 
-    addResource(resource: IResource<any>): IResource<any> {
-        return this._container.addResource(resource);
+    addResource(resource: D): this {
+        (resource as any).parent = this._owner;
+        this._resources.set(resource.alias, resource);
+        return this;
     }
 
-    removeResource(resource: string | IResource<any>): IResource<any> | undefined {
-        return this._container.removeResource(resource);
+    removeResource(resource: D | string): D | undefined {
+        const _key      = typeof resource === "string" ? resource : resource.alias;
+        const _existing = this._resources.get(_key);
+        if(_existing) {
+            this._resources.delete(_key);
+            (_existing as any).parent = undefined as never;
+        }
+        return _existing;
     }
 
-    getResource(resource: string): IResource<any> | undefined {
-        return this._container.getResource(resource);
+    getResource(alias: string): D | undefined {
+        return this._resources.get(alias);
     }
 
-    get resources(): MapIterator<IResource<any>> {
-        return this._container.resources;
+    get resources(): Iterable<D> {
+        return this._resources.values();
     }
 }

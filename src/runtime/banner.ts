@@ -1,0 +1,58 @@
+
+export function display(surpress: boolean = false) {  
+    if(!surpress) {                                                                                                                                                                                                                                                                                                                                                      
+        console.log("                          tttt                                                     tttt                              ffffffffffffffff");
+        console.log("                       ttt:::t                                                  ttt:::t                             f::::::::::::::::f");
+        console.log("                       t:::::t                                                  t:::::t                            f::::::::::::::::::f");
+        console.log("                       t:::::t                                                  t:::::t                            f::::::fffffff:::::f");
+        console.log("    ssssssssss   ttttttt:::::ttttttt   rrrrr   rrrrrrrrr   aaaaaaaaaaaaa  ttttttt:::::ttttttt       ooooooooooo    f:::::f       ffffffooooooooooo   rrrrr   rrrrrrrrr      mmmmmmm    mmmmmmm   ");
+        console.log("  ss::::::::::s  t:::::::::::::::::t   r::::rrr:::::::::r  a::::::::::::a t:::::::::::::::::t     oo:::::::::::oo  f:::::f           oo:::::::::::oo r::::rrr:::::::::r   mm:::::::m  m:::::::mm ");
+        console.log("ss:::::::::::::s t:::::::::::::::::t   r:::::::::::::::::r aaaaaaaaa:::::at:::::::::::::::::t    o:::::::::::::::of:::::::ffffff    o:::::::::::::::or:::::::::::::::::r m::::::::::mm::::::::::m");
+        console.log("s::::::ssss:::::stttttt:::::::tttttt   rr::::::rrrrr::::::r         a::::atttttt:::::::tttttt    o:::::ooooo:::::of::::::::::::f    o:::::ooooo:::::orr::::::rrrrr::::::rm::::::::::::::::::::::m");
+        console.log(" s:::::s  ssssss       t:::::t          r:::::r     r:::::r  aaaaaaa:::::a      t:::::t          o::::o     o::::of::::::::::::f    o::::o     o::::o r:::::r     r:::::rm:::::mmm::::::mmm:::::m");
+        console.log("   s::::::s            t:::::t          r:::::r     rrrrrrraa::::::::::::a      t:::::t          o::::o     o::::of:::::::ffffff    o::::o     o::::o r:::::r     rrrrrrrm::::m   m::::m   m::::m");
+        console.log("      s::::::s         t:::::t          r:::::r           a::::aaaa::::::a      t:::::t          o::::o     o::::o f:::::f          o::::o     o::::o r:::::r            m::::m   m::::m   m::::m");
+        console.log("ssssss   s:::::s       t:::::t    ttttttr:::::r          a::::a    a:::::a      t:::::t    tttttto::::o     o::::o f:::::f          o::::o     o::::o r:::::r            m::::m   m::::m   m::::m");
+        console.log("s:::::ssss::::::s      t::::::tttt:::::tr:::::r          a::::a    a:::::a      t::::::tttt:::::to:::::ooooo:::::of:::::::f         o:::::ooooo:::::o r:::::r            m::::m   m::::m   m::::m");
+        console.log("s::::::::::::::s       tt::::::::::::::tr:::::r          a:::::aaaa::::::a      tt::::::::::::::to:::::::::::::::of:::::::f         o:::::::::::::::o r:::::r            m::::m   m::::m   m::::m");
+        console.log(" s:::::::::::ss          tt:::::::::::ttr:::::r           a::::::::::aa:::a       tt:::::::::::tt oo:::::::::::oo f:::::::f          oo:::::::::::oo  r:::::r            m::::m   m::::m   m::::m");
+        console.log("  sssssssssss              ttttttttttt  rrrrrrr            aaaaaaaaaa  aaaa         ttttttttttt     ooooooooooo   fffffffff            ooooooooooo    rrrrrrr            mmmmmm   mmmmmm   mmmmmm");   
+        console.log(" "); 
+        console.log(" ");
+        console.log("                                _____                       _       _     _      __  __    ___   ___ ___  _____    _  _______  _____   _      _      _____   ");
+        console.log("                               / ____|                     (_)     | |   | |    / /  \\ \\  |__ \\ / _ \\__ \\| ____|  | |/ /  __ \\|_   _| | |    | |    / ____|  ");
+        console.log("                              | |     ___  _ __  _   _ _ __ _  __ _| |__ | |_  | | ___| |    ) | | | | ) | |__    | ' /| |__) | | |   | |    | |   | |       ");
+        console.log("                              | |    / _ \\| '_ \\| | | | '__| |/ _` | '_ \\| __| | |/ __| |   / /| | | |/ /|___ \\   |  < |  _  /  | |   | |    | |   | |       ");
+        console.log("                              | |___| (_) | |_) | |_| | |  | | (_| | | | | |_  | | (__| |  / /_| |_| / /_ ___) |  | . \\| | \\ \\ _| |_  | |____| |___| |____ _ ");
+        console.log("                               \\_____\\___/| .__/ \\__, |_|  |_|\\__, |_| |_|\\__| | |\\___| | |____|\\___/____|____( ) |_|\\_\\_|  \\_\\_____| |______|______\\_____(_)");
+        console.log("                                          | |     __/ |        __/ |            \\_\\  /_/                      |/");
+        console.log("                                          |_|    |___/        |___/");
+        console.log(" ");
+        console.log(" ");
+        console.log("                         _____  _     _        _ _           _           _                   _             __  __ _____ _______   _      _ ");
+        console.log("                        |  __ \\(_)   | |      (_) |         | |         | |                 | |           |  \\/  |_   _|__   __| | |    (_)");
+        console.log("                        | |  | |_ ___| |_ _ __ _| |__  _   _| |_ ___  __| |  _   _ _ __   __| | ___ _ __  | \\  / | | |    | |    | |     _  ___ ___ _ __  ___  ___");
+        console.log("                        | |  | | / __| __| '__| | '_ \\| | | | __/ _ \\/ _` | | | | | '_ \\ / _` |/ _ \\ '__| | |\\/| | | |    | |    | |    | |/ __/ _ \\ '_ \\/ __|/ _ \\");
+        console.log("                        | |__| | \\__ \\ |_| |  | | |_) | |_| | ||  __/ (_| | | |_| | | | | (_| |  __/ |    | |  | |_| |_   | |    | |____| | (_|  __/ | | \\__ \\  __/_");
+        console.log("                        |_____/|_|___/\\__|_|  |_|_.__/ \\__,_|\\__\\___|\\__,_|  \\__,_|_| |_|\\__,_|\\___|_|    |_|  |_|_____|  |_|    |______|_|\\___\\___|_| |_|___/\\___(_)");
+        console.log(" ");
+        console.log(" ");
+        console.log("Permission is hereby granted, free of charge, to any person obtaining a copy");
+        console.log("of this software and associated documentation files (the \"Software\"), to deal");
+        console.log("in the Software without restriction, including without limitation the rights");
+        console.log("to use, copy, modify, merge, publish, distribute, sublicense, and/or sell");
+        console.log("copies of the Software, and to permit persons to whom the Software is");
+        console.log("furnished to do so, subject to the following conditions:");
+        console.log(" ");
+        console.log("The above copyright notice and this permission notice shall be included in all");
+        console.log("copies or substantial portions of the Software.");
+        console.log("");
+        console.log("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR");
+        console.log("IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,");
+        console.log("FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE");
+        console.log("AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER");
+        console.log("LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,");
+        console.log("OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE");
+        console.log("SOFTWARE."); 
+    }                                                                                                                                        
+}

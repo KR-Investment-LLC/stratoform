@@ -30,72 +30,76 @@ export type Listener = (...args: any[]) => Promise<void> | void;
  *  
  */
 export class AsyncEventEmitter {
-  private listeners: Map<string, Set<Listener>> = new Map();
-  private _maxListeners = 50;
+    private listeners: Map<string, Set<Listener>> = new Map();
+    private _maxListeners = 50;
 
-  setMaxListeners(n: number) {
-    this._maxListeners = n;
-    return this;
-  }
-
-  on(event: string, listener: Listener) {
-    const bucket = this.listeners.get(event) ?? new Set<Listener>();
-    if (bucket.size >= this._maxListeners) {
-      // soft guard
-      // console.warn(`Max listeners (${this._maxListeners}) for "${event}"`);
+    setMaxListeners(n: number) {
+        this._maxListeners = n;
+        return this;
     }
-    bucket.add(listener);
-    this.listeners.set(event, bucket);
-    return this;
-  }
 
-  once(event: string, listener: Listener) {
-    const wrapped: Listener = async (...args: any[]) => {
-      try { await listener(...args); } finally { this.off(event, wrapped); }
-    };
-    return this.on(event, wrapped);
-  }
-
-  off(event: string, listener: Listener) {
-    this.listeners.get(event)?.delete(listener);
-    return this;
-  }
-
-  removeAllListeners(event?: string) {
-    if (event) this.listeners.get(event)?.clear();
-    else this.listeners.clear();
-    return this;
-  }
-
-  async emitParallel(event: string, ...args: any[]): Promise<Settled[]> {
-    const fns = this.listeners.get(event);
-    if (!fns || fns.size === 0) return [];
-    const promises = Array.from(fns, fn => Promise.resolve().then(() => fn(...args)));
-    const results = await Promise.allSettled(promises);
-    return results.map(r =>
-      r.status === "fulfilled"
-        ? { status: "fulfilled" }
-        : { status: "rejected", reason: r.reason }
-    );
-  }
-
-  async emitSerial(event: string, args: any[], stopOnError = false): Promise<Settled[]> {
-    const fns = this.listeners.get(event);
-    if (!fns || fns.size === 0) return [];
-    const out: Settled[] = [];
-    for (const fn of fns) {
-      try {
-        await fn(...args);
-        out.push({ status: "fulfilled" });
-      } catch (err) {
-        out.push({ status: "rejected", reason: err });
-        if (stopOnError) break;
+    on(event: string, listener: Listener) {
+      const bucket = this.listeners.get(event) ?? new Set<Listener>();
+      if(bucket.size >= this._maxListeners) {
+          // soft guard
+          // console.warn(`Max listeners (${this._maxListeners}) for "${event}"`);
       }
+      bucket.add(listener);
+      this.listeners.set(event, bucket);
+      return this;
     }
-    return out;
-  }
 
-  listenerCount(event: string): number {
-    return this.listeners.get(event)?.size ?? 0;
-  }
+    once(event: string, listener: Listener) {
+      const wrapped: Listener = async (...args: any[]) => {
+          try { 
+            await listener(...args); 
+          } 
+          finally {
+              this.off(event, wrapped);
+          }
+      };
+      return this.on(event, wrapped);
+    }
+
+    off(event: string, listener: Listener) {
+        this.listeners.get(event)?.delete(listener);
+        return this;
+    }
+
+    removeAllListeners(event?: string) {
+        if(event) this.listeners.get(event)?.clear();
+        else this.listeners.clear();
+        return this;
+    }
+
+    async emit(event: string, ...args: any[]): Promise<Settled[]> {
+        const fns = this.listeners.get(event);
+        if(!fns || fns.size === 0) return [];
+        const promises = Array.from(fns, fn => Promise.resolve().then(() => fn(...args)));
+        const results = await Promise.allSettled(promises);
+        return results.map(r =>
+            (r.status === "fulfilled")? { status: "fulfilled" } : { status: "rejected", reason: r.reason }
+        );
+    }
+
+    async emitSync(event: string, args: any[], stopOnError = false): Promise<Settled[]> {
+        const fns = this.listeners.get(event);
+        if(!fns || fns.size === 0) return [];
+        const out: Settled[] = [];
+        for (const fn of fns) {
+          try {
+              await fn(...args);
+              out.push({ status: "fulfilled" });
+          }
+          catch(err) {
+              out.push({ status: "rejected", reason: err });
+              if(stopOnError) break;
+          }
+        }
+        return out;
+    }
+
+    listenerCount(event: string): number {
+        return this.listeners.get(event)?.size ?? 0;
+    }
 }

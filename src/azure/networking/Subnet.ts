@@ -22,11 +22,19 @@
  * SOFTWARE.
  */
 
-import { IResourceConfig } from "./IResourceConfig.js";
-import { IResourceComposite } from "./IResourceComposite.js"
+import { IConfig } from "../../core/IConfig";
+import { VirtualNetworkDependent } from "./VirtualNetwork";
 
-
-export interface IResourceDependent<D extends IResourceComposite<any>> {
-    parent: D | undefined;
-    name:   string;
+/**
+ * 
+ */
+export interface ISubnetConfig extends IConfig {
+    //
 };
+
+/**
+ * 
+ */
+export class Subnet extends VirtualNetworkDependent<ISubnetConfig> {
+    //
+}
