@@ -7,6 +7,7 @@ pnpm-debug.log*
 
 # Output directories
 dist/
+dist-tests/
 build/
 out/
 coverage/
