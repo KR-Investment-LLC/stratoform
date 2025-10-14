@@ -23,24 +23,62 @@
  * SOFTWARE.
  */
 
-import { Command, Option } from "commander";
+import { displayStartBanner } from "./banner";
+import {
+  IRuntimeConfig,
+  loadConfig
+} from "../core/RuntimeConfig";
+import { 
+  Command, 
+  Option 
+} from "commander";
+import path from "node:path";
 
 const program = new Command()
-  .name("strato")
-  .description("Run Stratoform deployments from *.stratoform.ts files")
+  .name("stratoform")
+  .description("Run Stratoform cloud platform deployment definitions.")
   .version("0.1.0");
 
 program
-  .option("-p, --patterns <globs...>", "Glob(s) to find *.stratoform.ts", ["deployments/**/*.stratoform.ts"])
-  .option("-C, --cwd <dir>", "Working directory", process.cwd())
+  .option("--config-path <path>",  "Stratoform config path [./statoconfig.json]",   path.join(process.cwd(), "statoconfig.json"))
+  .option("--define",              "Only define infrastructure state.",             false)
   .addOption(
-    new Option("--phase <names...>", "Lifecycle phase(s) to run")
-      .choices(["define","beforeValidate","afterValidate","beforeSpecutlate","afterSpecutlate","beforeDeploy","afterDeploy"])
+    new Option("--log-level <level>", "Set log verbosity")
+      .choices(["verbose", "debug", "info", "warn", "error"])
+      .default("info")
   )
-  .option("--dry-run", "Resolve/validate only, don’t deploy", false)
-  .option("-c, --concurrency <n>", "Max concurrent resources per phase", "0")
-  .addOption(new Option("--format <fmt>", "Output format").choices(["table","json"]).default("table"))
-  .option("-s, --select", "Interactive file selection", false)
-  .option("-v, --verbose", "Verbose output", false);
+  .option("--log-path",            "Only speculate infrastructure state.",          path.join(process.cwd(), "logs"))
+  .option("--speculate",           "Only speculate infrastructure state.",          false)
+  .option("--silent",              "Run headless with no CLI inpout oroutput.",     false)
+  .option("--unlock <alias>",      "Unlocks resource for delete or modification.",  false)
+  .option("--unlock-all",          "Unlocks resources for delete or modification.", false)
+  .option("--validate",            "Only validate infrastructure definitions.",     false)
 
-program.parseAsync();
+  .action(async (opts) => {
+    
+
+    displayStartBanner(opts.silent);
+    if(!opts.silent) {
+      console.log(`Stratoform starting...`);
+      
+      // TODO: Check to see if the file exists...
+      console.log(`Configuration path is '${opts.configPath}'`);
+      console.log(`Configuration '${opts.configPath}' loading...`);
+      const _RuntimeConfig: IRuntimeConfig = loadConfig(opts);
+      console.log(`Configuration '${opts.configPath}' loaded.`);
+      console.log(`Using log path '${opts.logPath}'`);
+      console.log(`Using log level '${opts.logLevel}'`);
+      // TODO: Load the Logging in winston...
+      
+      console.log("Stratoform started! May the force live long and prosper.");
+    }
+
+  });
+
+
+
+program.parseAsync()
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

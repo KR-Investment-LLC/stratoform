@@ -1,5 +1,5 @@
 
-export function display(surpress: boolean = false) {  
+export function displayStartBanner(surpress: boolean = false) {  
     if(!surpress) {                                                                                                                                                                                                                                                                                                                                                      
         console.log("                          tttt                                                     tttt                              ffffffffffffffff");
         console.log("                       ttt:::t                                                  ttt:::t                             f::::::::::::::::f");
@@ -54,5 +54,7 @@ export function display(surpress: boolean = false) {
         console.log("LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,");
         console.log("OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE");
         console.log("SOFTWARE."); 
+        console.log(" ");
+        console.log(" ");
     }                                                                                                                                        
 }

@@ -29,10 +29,6 @@ import { Subscription, WorkloadType } from "../src/azure/Subscription";
 import { Deployment } from "../src/core/Deployment";
 import { Variable } from "../src/core/Variable";
 
-import { display } from "../src/runtime/banner";
-
-display();
-
 export default Deployment.define("MyApplicationInfrastructureDeployment", {}, 
     (myApplicationInfrastructureDeployment) => {
         myApplicationInfrastructureDeployment

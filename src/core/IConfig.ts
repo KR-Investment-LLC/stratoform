@@ -26,7 +26,9 @@
  * @description
  */
 export interface IConfig {
-    name: string,
-    id?: string,
+    name: string,          //<- Name of the cloud platform resource to create.
+    id?: string,           //<- The UUID of the cloud resource created.
+    lock?:boolean,         //<- Prevent changes to this resource unless overridden
+    protected?: boolean,   //<- Prevent destroying of resource unless overriden 
     [key: string]: any;
 }
