@@ -28,6 +28,6 @@ import { Resource } from "./Resource";
 /**
  * 
  */
-export abstract class Dependent<P, C extends IConfig> extends Resource<C> {
+export abstract class Dependent<P extends Resource<any>, C extends IConfig> extends Resource<C> {
     public parent!: P; // set by the parent when added
 }
