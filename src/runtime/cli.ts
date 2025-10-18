@@ -27,58 +27,68 @@ import { displayStartBanner } from "./banner";
 import {
   IRuntimeConfig,
   loadConfig
-} from "../core/RuntimeConfig";
+} from "./RuntimeConfig";
 import { 
   Command, 
   Option 
 } from "commander";
 import path from "node:path";
+import { createContext, IContext } from "./Context";
+import { createRuntime } from "./Runtime";
 
 const program = new Command()
-  .name("stratoform")
-  .description("Run Stratoform cloud platform deployment definitions.")
-  .version("0.1.0");
+    .name("stratoform")
+    .description("Run Stratoform cloud platform deployment definitions.")
+    .version("0.1.0");
 
 program
-  .option("--config-path <path>",  "Stratoform config path [./statoconfig.json]",   path.join(process.cwd(), "statoconfig.json"))
-  .option("--define",              "Only define infrastructure state.",             false)
-  .addOption(
-    new Option("--log-level <level>", "Set log verbosity")
-      .choices(["verbose", "debug", "info", "warn", "error"])
-      .default("info")
-  )
-  .option("--log-path",            "Only speculate infrastructure state.",          path.join(process.cwd(), "logs"))
-  .option("--speculate",           "Only speculate infrastructure state.",          false)
-  .option("--silent",              "Run headless with no CLI inpout oroutput.",     false)
-  .option("--unlock <alias>",      "Unlocks resource for delete or modification.",  false)
-  .option("--unlock-all",          "Unlocks resources for delete or modification.", false)
-  .option("--validate",            "Only validate infrastructure definitions.",     false)
+    .option("--config-path <path>",  "Stratoform config path [./statoconfig.json]",    path.join(process.cwd(), "statoconfig.json"))
+    .option("--define",              "Only define infrastructure state.",              false)
+    .option("--log-days <days>",     "The maximum number of days a log file is kept.", path.join("20"))
+    .addOption(
+      new Option("--log-level <level>", "Set log verbosity")
+        .choices(["verbose", "debug", "info", "warn", "error"])
+        .default("info")
+    )
+    .addOption(
+      new Option("--log-output <output>", "Set log output to file, console, or both")
+        .choices(["file", "console", "both"])
+        .default("file")
+    )
+    .option("--log-path <logPath>",      "The path to the log file.",                      path.join(process.cwd(), "logs/"))
+    .option("--log-size <size>",         "The maximum file size in MB.",                   "1")
+    .option("--log-zip",                 "Use zip archive to preserve logs.",              true)
+    .option("--speculate",               "Only speculate infrastructure state.",           false)
+    .option("--silent",                  "Run headless with no CLI inpout oroutput.",      false)
+    .option("--unlock <alias>",          "Unlocks resource for delete or modification.")
+    .option("--unlock-all",              "Unlocks resources for delete or modification.",  false)
+    .option("--working-directory <dir>", "Unlocks resources for delete or modification.",  process.cwd())
+    .option("--validate",                "Only validate infrastructure definitions.",      false)
 
-  .action(async (opts) => {
-    
+    .action(async (opts) => {
+        displayStartBanner(opts.silent);
+        const _RuntimeConfig:  IRuntimeConfig = loadConfig(opts);
+        const _RuntimeContext: IContext       = createContext(_RuntimeConfig, program, opts);
 
-    displayStartBanner(opts.silent);
-    if(!opts.silent) {
-      console.log(`Stratoform starting...`);
-      
-      // TODO: Check to see if the file exists...
-      console.log(`Configuration path is '${opts.configPath}'`);
-      console.log(`Configuration '${opts.configPath}' loading...`);
-      const _RuntimeConfig: IRuntimeConfig = loadConfig(opts);
-      console.log(`Configuration '${opts.configPath}' loaded.`);
-      console.log(`Using log path '${opts.logPath}'`);
-      console.log(`Using log level '${opts.logLevel}'`);
-      // TODO: Load the Logging in winston...
-      
-      console.log("Stratoform started! May the force live long and prosper.");
-    }
+        _RuntimeContext.log.info("Stratoform started. May the force live long and prosper.");
+        _RuntimeContext.log.debug(`Log level set to '${_RuntimeContext.log.level}'.`);
+        _RuntimeContext.log.debug(`Confgiuration loaded from '${_RuntimeContext.config.configPath}'.`);
 
-  });
+        const _Runtime = createRuntime(_RuntimeContext);
+
+        try {
+            await _Runtime.run();
+        }
+        catch(err) {
+            _RuntimeContext.log.error(err);
+            throw err;
+        }
+    });
 
 
 
 program.parseAsync()
-  .catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+    .catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });

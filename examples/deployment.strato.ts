@@ -49,12 +49,12 @@ export default Deployment.define("MyApplicationInfrastructureDeployment", {},
                 // add the first resource group.
                 mySubscription
                     // Add the first resource group.
-                    .addResourceGroup(ResourceGroup.define("MyResourceGroupOne", {
+                    .addResource(ResourceGroup.define("MyResourceGroupOne", {
                             name: "my-resource-group-one-rg",
                         }, 
                         (myResourceGroupOne: ResourceGroup) => {
                             // Add the VNET to resource group 1
-                            myResourceGroupOne.addVirtualNetwork(VirtualNetwork.define("MyVirtualNetworkOne", {
+                            myResourceGroupOne.addResource(VirtualNetwork.define("MyVirtualNetworkOne", {
                                 name: "my-virtual-network-one-vnet"
                             },
                             (myVirtualNetworkOne: VirtualNetwork) => {
@@ -65,7 +65,7 @@ export default Deployment.define("MyApplicationInfrastructureDeployment", {},
                         }));
                     }))
                     // Add the second resource group.
-                    .addResourceGroup(ResourceGroup.define("MyResourceGroupTwo", {
+                    .addResource(ResourceGroup.define("MyResourceGroupTwo", {
                         name: "my-resource-group-two-rg",
                     }, (myResourceGroupTwo: ResourceGroup) => {
                         // Add the VNET to resource group 1

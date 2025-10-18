@@ -22,40 +22,4 @@
  * SOFTWARE.
  */
 
-import { IConfig } from "../core/IConfig";
-import { Resource } from "../core/Resource";
-import { ResourceComposite } from "../core/ResourceComposite";
-
-/**
- * @description
- */
-export enum WorkloadType {
-    Production = "Production",
-    DevTest    = "DevTest"
-};
-
-/**
- * 
- */
-export interface ISubscriptionConfig extends IConfig {
-    workloadType?: WorkloadType
-}
-
-/**
- * @description Marker class to identify children of a Subscription
- */
-export abstract class SubscriptionChild<C extends IConfig> extends Resource<C> {}
-
-/**
- * @description Marker class to identify children of a Subscription that can have children
- */
-export abstract class SubscriptionCompositeChild<C extends IConfig> extends ResourceComposite<C, SubscriptionChild<any>> {}
-
-export type SubscriptionChildType = SubscriptionChild<any> | SubscriptionCompositeChild<any>;
-
-/**
- * 
- */
-export class Subscription extends ResourceComposite<ISubscriptionConfig, SubscriptionChildType> {
-    //
-}
+export default "This is a test";

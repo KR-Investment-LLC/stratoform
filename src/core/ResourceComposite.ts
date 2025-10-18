@@ -22,12 +22,28 @@
  * SOFTWARE.
  */
 
+import { CompositeMap } from "./CompositeMap";
+import { IComposite } from "./IComposite";
 import { IConfig } from "./IConfig";
 import { Resource } from "./Resource";
 
-/**
- * 
- */
-export abstract class Dependent<P extends Resource<any>, C extends IConfig> extends Resource<C> {
-    public parent!: P; // set by the parent when added
+export abstract class ResourceComposite<C extends IConfig, D extends Resource<any>> extends Resource<C> implements IComposite<D> {
+    private _composite: CompositeMap<this, D> = new CompositeMap<this, D>(this);
+
+    addResource(resource: D): this { 
+        this._composite.addResource(resource);
+        return this;
+    }
+
+    removeResource(resource: D | string): D | undefined { 
+        return this._composite.removeResource(resource); 
+    }
+
+    getResource(alias: string):  D | undefined { 
+        return this._composite.getResource(alias); 
+    }
+
+    get resources(): Iterable<D> { 
+        return this._composite.resources; 
+    }
 }

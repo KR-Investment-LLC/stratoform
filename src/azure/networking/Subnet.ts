@@ -23,7 +23,7 @@
  */
 
 import { IConfig } from "../../core/IConfig";
-import { VirtualNetworkDependent } from "./VirtualNetwork";
+import { VirtualNetworkChild } from "./VirtualNetwork";
 
 /**
  * 
@@ -35,6 +35,6 @@ export interface ISubnetConfig extends IConfig {
 /**
  * 
  */
-export class Subnet extends VirtualNetworkDependent<ISubnetConfig> {
+export class Subnet extends VirtualNetworkChild<ISubnetConfig> {
     //
 }

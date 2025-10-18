@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-import { CompositeKernel } from "../../core/CompositeKernel";
-import { Dependent } from "../../core/Dependent";
-import { IComposite } from "../../core/IComposite";
 import { IConfig } from "../../core/IConfig";
-import { ResourceGroup, ResourceGroupDependant } from "../ResourceGroup";
+import { 
+    ResourceGroupChild, 
+    ResourceGroupCompositeChild 
+} from "../ResourceGroup";
 import { Subnet } from "./Subnet";
 
 /**
@@ -39,33 +39,23 @@ export interface IVirtualNetworkConfig extends IConfig {
 /**
  * @description Marker class to identify dependents of a VirtualNetwork
  */
-export abstract class VirtualNetworkDependent<C extends IConfig> extends Dependent<VirtualNetwork, C> {}
+export abstract class VirtualNetworkChild<C extends IConfig> extends ResourceGroupChild<C> {}
+
+export abstract class VirtualNetworkChildCompositeChild<C extends IConfig> extends ResourceGroupCompositeChild<C> {}
+
+export type VirtualNetworkChildType = VirtualNetworkChild<any> | VirtualNetworkChildCompositeChild<any>;
 
 /**
  * 
  */
-export class VirtualNetwork  extends ResourceGroupDependant<IVirtualNetworkConfig> implements IComposite<VirtualNetworkDependent<any>> {
-    private readonly composite = new CompositeKernel<VirtualNetwork, VirtualNetworkDependent<any>>(this);
+export class VirtualNetwork  extends ResourceGroupCompositeChild<IVirtualNetworkConfig> {
 
-    // Add subnet and NSG helper.
+    /**
+     * @description 
+     * @param subnet 
+     * @returns 
+     */
     addSubnet(subnet: Subnet): this {
         return this.addResource(subnet);
-    }
-
-    addResource(d: VirtualNetworkDependent<any>): this { 
-        this.composite.addResource(d);
-        return this;
-    }
-
-    removeResource(d: VirtualNetworkDependent<any> | string): VirtualNetworkDependent<any> | undefined { 
-        return this.composite.removeResource(d); 
-    }
-
-    getResource(name: string):  VirtualNetworkDependent<any> | undefined { 
-        return this.composite.getResource(name); 
-    }
-
-    get resources(): Iterable<VirtualNetworkDependent<any>> { 
-        return this.composite.resources; 
     }
 }

@@ -22,14 +22,13 @@
  * SOFTWARE.
  */
 
-import { Dependent } from "./Dependent";
 import { IComposite } from "./IComposite";
 import { Resource } from "./Resource";
 
 /** 
  * Reusable manager for dependents; enforces parent wiring to Self. 
  */
-export class CompositeKernel<Owner extends Resource<any>, D extends Dependent<Owner, any>> implements IComposite<D> {
+export class CompositeMap<Owner extends Resource<any>, D extends Resource<any>> implements IComposite<D> {
     private readonly _resources = new Map<string, D>();
     private readonly _owner: Owner
 

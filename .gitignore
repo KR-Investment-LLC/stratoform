@@ -18,6 +18,7 @@ coverage/
 # Logs
 *.log
 logs/
+**/logs/*
 debug.log
 
 # Environment variables

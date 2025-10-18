@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-import { Dependent } from "./Dependent";
+import { Resource } from "./Resource";
 
 /**
  * 
  */
-export interface IComposite<D extends Dependent<any, any>> {
+export interface IComposite<D extends Resource<any>> {
     addResource(dependent: D): this;
     removeResource(dependentOrName: D | string): D | undefined;
     getResource(name: string): D | undefined;

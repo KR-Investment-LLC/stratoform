@@ -29,7 +29,7 @@ import { IConfig } from "./IConfig";
 /** 
  * Every resource has a name, config, and is an async event emitter. 
  */
-export abstract class Resource<C extends IConfig> extends AsyncEventEmitter {
+export abstract class Resource<C extends IConfig, P extends Resource<any, any> = Resource<any, any>> extends AsyncEventEmitter {
     /** 
      * Event names the base class uses 
      */
@@ -48,6 +48,8 @@ export abstract class Resource<C extends IConfig> extends AsyncEventEmitter {
 
     private _alias:  string;
     private _config: C;
+
+    public parent: P | undefined = undefined;
 
     /**
      * @description

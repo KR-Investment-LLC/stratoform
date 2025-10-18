@@ -22,12 +22,11 @@
  * SOFTWARE.
  */
 
-import { CompositeKernel } from "../core/CompositeKernel";
-import { Dependent } from "../core/Dependent";
-import { IComposite } from "../core/IComposite";
 import { IConfig } from "../core/IConfig";
-import { VirtualNetwork } from "./networking/VirtualNetwork";
-import { SubscriptionDependant, Subscription } from "./Subscription";
+import { 
+    SubscriptionChild, 
+    SubscriptionCompositeChild 
+} from "./Subscription";
 
 /**
  * 
@@ -39,32 +38,15 @@ export interface IResourceGroupConfig extends IConfig {
 /**
  * @description Marker class to identify dependents of a ResourceGroup
  */
-export abstract class ResourceGroupDependant<C extends IConfig> extends Dependent<ResourceGroup, C> {}
+export abstract class ResourceGroupChild<C extends IConfig> extends SubscriptionChild<C> {}
+
+export abstract class ResourceGroupCompositeChild<C extends IConfig> extends SubscriptionCompositeChild<C> {}
+
+export type ResourceGroupChildType = ResourceGroupChild<any> | ResourceGroupCompositeChild<any>;
 
 /**
  * 
  */
-export class ResourceGroup  extends SubscriptionDependant<IResourceGroupConfig> implements IComposite<ResourceGroupDependant<any>> {
-    private readonly composite = new CompositeKernel<ResourceGroup, ResourceGroupDependant<any>>(this);
-
-    addVirtualNetwork(vnet: VirtualNetwork): this {
-        return this.addResource(vnet);
-    }
-
-    addResource(resource: ResourceGroupDependant<any>): this { 
-        this.composite.addResource(resource);
-        return this;
-    }
-
-    removeResource(resource: ResourceGroupDependant<any> | string): ResourceGroupDependant<any> | undefined { 
-        return this.composite.removeResource(resource); 
-    }
-
-    getResource(alias: string):  ResourceGroupDependant<any> | undefined { 
-        return this.composite.getResource(alias); 
-    }
-
-    get resources(): Iterable<ResourceGroupDependant<any>> { 
-        return this.composite.resources; 
-    }
+export class ResourceGroup  extends SubscriptionCompositeChild<IResourceGroupConfig> {
+    //
 }

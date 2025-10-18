@@ -27,20 +27,42 @@ import path from "path";
 import _ from "lodash";
 
 export interface IRuntimeConfig {
-    configPath?: string;
-    pattern:     string;
-    exclude?:    string[];
+    configPath:       string;
+    workingDirectory: string;
+    pattern:          string;
+    exclude:          string[];
+    logging:    {
+        level:      string;
+        path:       string;
+        console:    boolean;
+        file:       boolean;
+        zipArchive: boolean;
+        maxSize:    string;
+        maxDays:    string;
+    },
+    variables: Record<string, any>
 };
 
 function createDefaultConfig(options: any): IRuntimeConfig {
-    let _verbosity = options.silent;
-
     return {
-        configPath: options.configPath,
-        pattern: "**/*.strato.ts",
+        configPath:       options.configPath,
+        workingDirectory: options.workingDirectory,
+        pattern:          "**/*.strato.ts",
         exclude: [
-            "**/node_modules"
-        ]
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/logs/**"
+        ],
+        logging: {
+            path:      options.logPath,
+            level:     options.logLevel,
+            console:   (options.silent)? false : (options.logOutput === "both" || options.logOutput === "console"),
+            file:      (options.logOutput === "both" || options.logOutput === "file"),
+            zipArchive: options.logZip,
+            maxSize:    options.logSize,
+            maxDays:    options.logDays
+        }
     } as IRuntimeConfig;
 }
 
@@ -57,22 +79,12 @@ function doesFileExist(configPath: string | undefined) {
 export function loadConfig(options: any): IRuntimeConfig {
     const _defaultConfig = createDefaultConfig(options);
     
-    try {
-        console.log(`Checking to see if '${_defaultConfig.configPath}' exists...`);
-        // check to see if the file exists.
-        if(doesFileExist(_defaultConfig.configPath)) {
-            console.log(`'${_defaultConfig.configPath}' exists, loading config...`);
-            const _content = fs.readFileSync(path.resolve(_defaultConfig.configPath!), "utf-8");
-            const _data    = JSON.parse(_content);
-            console.log(`'${_defaultConfig.configPath}' loaded.`);
-            return _.merge({}, _defaultConfig, _data);
-        }
-    }
-    catch(err) {
-        console.error(`Exception loading config file '${_defaultConfig.configPath}': ${err}`);
-        throw err;
+    // check to see if the file exists.
+    if(doesFileExist(_defaultConfig.configPath)) {
+        const _content = fs.readFileSync(path.resolve(_defaultConfig.configPath!), "utf-8");
+        const _data    = JSON.parse(_content);
+        return _.merge({}, _defaultConfig, _data);
     }
 
-    console.log(`Config '${_defaultConfig.configPath}' does not exist, using default configuration.`);
     return _defaultConfig;
 }

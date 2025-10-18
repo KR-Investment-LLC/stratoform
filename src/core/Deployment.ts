@@ -26,6 +26,8 @@ import { AsyncEventEmitter } from "./AsyncEventEmitter";
 import { Resource } from "./Resource";
 import { Variable } from "./Variable";
 
+export const DEPLOYMENT_VERSION = Symbol.for("Stratoform.Deployment/v1.0.0");
+
 /**
  * @description
  */
@@ -37,6 +39,8 @@ export interface IDeploymentConfig {
  * @description
  */
 export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends AsyncEventEmitter {
+    public readonly [DEPLOYMENT_VERSION] = true;
+
     /** 
      * Event names the base class uses 
      */
@@ -153,5 +157,14 @@ export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends
         const _self = new this(alias, config);
         if(fn) _self.on(Deployment.EVENTS.define, () => fn(_self));
         return _self;
+    }
+
+    /**
+     * 
+     * @param x 
+     * @returns 
+     */
+    static is(x: unknown): x is Deployment {
+        return !!x && typeof x === "object" && DEPLOYMENT_VERSION in (x as object);
     }
 }
