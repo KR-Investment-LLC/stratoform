@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/KR-Investment-LLC/statemint.git"
+    "url": "git+https://github.com/KR-Investment-LLC/stratoform.git"
   },
   "keywords": [
     "Cloud",
@@ -32,9 +32,9 @@
   "author": "KRI LLC",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/KR-Investment-LLC/statemint/issues"
+    "url": "https://github.com/KR-Investment-LLC/stratoform/issues"
   },
-  "homepage": "https://github.com/KR-Investment-LLC/statemint#readme",
+  "homepage": "https://github.com/KR-Investment-LLC/stratoform#readme",
   "dependencies": {
     "@types/jest": "^30.0.0",
     "axios": "^1.12.2",
