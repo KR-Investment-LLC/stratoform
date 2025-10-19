@@ -35,11 +35,6 @@ export interface IDependable {
      * @description Resolves when this instance is fully ready. Safe to call multiple times.
      */
     ready(): Promise<void>;
-
-    /** 
-     * @description Waits deps, performs work, then marks ready(). Safe to call multiple times. 
-     */
-    resolve(): Promise<void>;
 }
 
 /**
@@ -60,7 +55,7 @@ export class Dependable implements IDependable {
         this._dependents.push(...items);
     }
 
-    ready(): Promise<void> {
+    async ready(): Promise<void> {
         return this._semaphore;
     }
 

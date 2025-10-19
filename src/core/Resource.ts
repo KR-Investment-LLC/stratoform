@@ -183,10 +183,6 @@ export abstract class Resource<C extends IConfig, P extends Resource<any, any> |
         return this._dependable.ready();
     }
 
-    async resolve(): Promise<void> {
-        return this._dependable.resolve();
-    }
-
     /**
      * @description 
      * @param this   

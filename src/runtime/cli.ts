@@ -36,6 +36,17 @@ import path from "node:path";
 import { createContext, IContext } from "./Context";
 import { createRuntime } from "./Runtime";
 
+function parseKvpList(value: string) {
+  const _pairs = value.split(",");
+  const _map: Record<string, string> = {};
+  for(const p of _pairs) {
+      const [k, v] = p.split("=", 2);
+      if (!k || v === undefined) throw new Error(`Invalid KVP: ${p}`);
+      _map[k] = v;
+  }
+  return _map;
+}
+
 const program = new Command()
     .name("stratoform")
     .description("Run Stratoform cloud platform deployment definitions.")
@@ -55,16 +66,17 @@ program
         .choices(["file", "console", "both"])
         .default("file")
     )
-    .option("--log-path <logPath>",      "The path to the log file.",                      path.join(process.cwd(), "logs/"))
-    .option("--log-size <size>",         "The maximum file size in MB.",                   "1")
-    .option("--log-zip",                 "Use zip archive to preserve logs.",              true)
-    .option("--speculate",               "Only speculate infrastructure state.",           false)
-    .option("--silent",                  "Run headless with no CLI inpout oroutput.",      false)
-    .option("--unlock <alias>",          "Unlocks resource for delete or modification.")
-    .option("--unlock-all",              "Unlocks resources for delete or modification.",  false)
-    .option("--working-directory <dir>", "Unlocks resources for delete or modification.",  process.cwd())
-    .option("--validate",                "Only validate infrastructure definitions.",      false)
-
+    .option("--log-path <logPath>",          "The path to the log file.",                      path.join(process.cwd(), "logs"))
+    .option("--log-size <size>",             "The maximum file size in MB.",                   "1")
+    .option("--log-zip",                     "Use zip archive to preserve logs.",              true)
+    .option("--speculate",                   "Only speculate infrastructure state.",           false)
+    .option("--silent",                      "Run headless with no CLI inpout oroutput.",      false)
+    .option("--unlock <alias>",              "Unlocks resource for delete or modification.")
+    .option("--unlock-all",                  "Unlocks resources for delete or modification.",  false)
+    .option("--working-directory <dir>",     "Unlocks resources for delete or modification.",  process.cwd())
+    .option("--variable-path <path>",        "Path to JSON variable file.")
+    .option("--variables <k1=v1,k2=v2,...>", "Set multiple valriables by key=value.",          parseKvpList)
+ 
     .action(async (opts) => {
         displayStartBanner(opts.silent);
         const _RuntimeConfig:  IRuntimeConfig = loadConfig(opts);

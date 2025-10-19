@@ -40,7 +40,8 @@ export interface IRuntimeConfig {
         maxSize:    string;
         maxDays:    string;
     },
-    variables: Record<string, any>
+    variablePath?: string;
+    variables?:    Record<string, any>;
 };
 
 function createDefaultConfig(options: any): IRuntimeConfig {
@@ -62,7 +63,9 @@ function createDefaultConfig(options: any): IRuntimeConfig {
             zipArchive: options.logZip,
             maxSize:    options.logSize,
             maxDays:    options.logDays
-        }
+        },
+        variablePath: options.variablePath,
+        variables: options.variables
     } as IRuntimeConfig;
 }
 
@@ -77,13 +80,20 @@ function doesFileExist(configPath: string | undefined) {
  * @returns 
  */
 export function loadConfig(options: any): IRuntimeConfig {
-    const _defaultConfig = createDefaultConfig(options);
+    let _defaultConfig = createDefaultConfig(options);
     
     // check to see if the file exists.
     if(doesFileExist(_defaultConfig.configPath)) {
         const _content = fs.readFileSync(path.resolve(_defaultConfig.configPath!), "utf-8");
         const _data    = JSON.parse(_content);
-        return _.merge({}, _defaultConfig, _data);
+        _defaultConfig = _.merge({}, _defaultConfig, _data);
+    }
+
+    // Check to see if there is a variable path set
+    if(_defaultConfig.variablePath) {
+        const _content = fs.readFileSync(path.resolve(_defaultConfig.variablePath!), "utf-8");
+        const _data    = JSON.parse(_content);
+        _defaultConfig.variables = _.merge({}, _defaultConfig.variables, _data);
     }
 
     return _defaultConfig;
