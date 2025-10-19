@@ -29,7 +29,7 @@ import { Subscription, WorkloadType } from "../src/azure/Subscription";
 import { Deployment } from "../src/core/Deployment";
 import { Variable } from "../src/core/Variable";
 
-export default Deployment.define("MyApplicationInfrastructureDeployment", {}, 
+export default Deployment.deploy("MyApplicationInfrastructureDeployment", {}, 
     (myApplicationInfrastructureDeployment) => {
         myApplicationInfrastructureDeployment
             // Add the variables
@@ -40,8 +40,8 @@ export default Deployment.define("MyApplicationInfrastructureDeployment", {},
                 required: true
             }))
             // Now the resources, starting with the subscription
-            .addResource(Subscription.define("MySubscriptionOne", {
-                name: "my-subscription-one-sub",
+            .deployResource(Subscription.deploy("MySubscriptionOne", {
+                name:         "my-subscription-one-sub",
                 workloadType: WorkloadType.Production
             }, 
             (mySubscription: Subscription) => {
@@ -49,23 +49,23 @@ export default Deployment.define("MyApplicationInfrastructureDeployment", {},
                 // add the first resource group.
                 mySubscription
                     // Add the first resource group.
-                    .addResource(ResourceGroup.define("MyResourceGroupOne", {
+                    .deployDependent(ResourceGroup.deploy("MyResourceGroupOne", {
                             name: "my-resource-group-one-rg",
                         }, 
-                        (myResourceGroupOne: ResourceGroup) => {
+                        (myResourceGroupOne: ResourceGroup) => {        
                             // Add the VNET to resource group 1
-                            myResourceGroupOne.addResource(VirtualNetwork.define("MyVirtualNetworkOne", {
+                            myResourceGroupOne.deployDependent(VirtualNetwork.deploy("MyVirtualNetworkOne", {
                                 name: "my-virtual-network-one-vnet"
                             },
                             (myVirtualNetworkOne: VirtualNetwork) => {
                                 // add the subnet
-                                myVirtualNetworkOne.addSubnet(Subnet.define("MyVirtualNetworkOneMainSubnet", {
+                                myVirtualNetworkOne.deploySubnet(Subnet.deploy("MyVirtualNetworkOneMainSubnet", {
                                     name: "main-subnet"
+                                }));
                             }));
-                        }));
-                    }))
+                        }))
                     // Add the second resource group.
-                    .addResource(ResourceGroup.define("MyResourceGroupTwo", {
+                    .deployDependent(ResourceGroup.deploy("MyResourceGroupTwo", {
                         name: "my-resource-group-two-rg",
                     }, (myResourceGroupTwo: ResourceGroup) => {
                         // Add the VNET to resource group 1

@@ -22,34 +22,42 @@
  * SOFTWARE.
  */
 
-type Settled = { status: "fulfilled" } | { status: "rejected"; reason: unknown };
-
 export type Listener = (...args: any[]) => Promise<void> | void;
+
+export interface IAsyncEventEmitter {
+    setMaxListeners(n: number): this;
+    on(event: string, listener: Listener, first?: boolean): this;
+    once(event: string, listener: Listener, first?: boolean): this;
+    off(event: string, listener: Listener): this;
+    removeAllListeners(event?: string): this;
+    emit(event: string, ...args: any[]): Promise<void>;
+    listenerCount(event: string): number;
+};
 
 /**
  *  
  */
-export class AsyncEventEmitter {
+export class AsyncEventEmitter implements IAsyncEventEmitter {
     private listeners: Map<string, Set<Listener>> = new Map();
     private _maxListeners = 50;
 
-    setMaxListeners(n: number) {
+    setMaxListeners(n: number): this {
         this._maxListeners = n;
         return this;
     }
 
-    on(event: string, listener: Listener) {
-      const bucket = this.listeners.get(event) ?? new Set<Listener>();
-      if(bucket.size >= this._maxListeners) {
+    on(event: string, listener: Listener, first: boolean = false): this {
+      const _bucket = this.listeners.get(event) ?? new Set<Listener>();
+      if(_bucket.size >= this._maxListeners) {
           // soft guard
           // console.warn(`Max listeners (${this._maxListeners}) for "${event}"`);
       }
-      bucket.add(listener);
-      this.listeners.set(event, bucket);
+      _bucket.add(listener);
+      this.listeners.set(event, _bucket);
       return this;
     }
 
-    once(event: string, listener: Listener) {
+    once(event: string, listener: Listener, first: boolean = false): this {
       const wrapped: Listener = async (...args: any[]) => {
           try { 
             await listener(...args); 
@@ -61,42 +69,25 @@ export class AsyncEventEmitter {
       return this.on(event, wrapped);
     }
 
-    off(event: string, listener: Listener) {
+    off(event: string, listener: Listener): this {
         this.listeners.get(event)?.delete(listener);
         return this;
     }
 
-    removeAllListeners(event?: string) {
+    removeAllListeners(event?: string): this {
         if(event) this.listeners.get(event)?.clear();
         else this.listeners.clear();
         return this;
     }
 
-    async emit(event: string, ...args: any[]): Promise<Settled[]> {
-        const fns = this.listeners.get(event);
-        if(!fns || fns.size === 0) return [];
-        const promises = Array.from(fns, fn => Promise.resolve().then(() => fn(...args)));
-        const results = await Promise.allSettled(promises);
-        return results.map(r =>
-            (r.status === "fulfilled")? { status: "fulfilled" } : { status: "rejected", reason: r.reason }
-        );
-    }
+    async emit(event: string, ...args: any[]): Promise<void> {
+        const _listeners = this.listeners.get(event);
 
-    async emitSync(event: string, args: any[], stopOnError = false): Promise<Settled[]> {
-        const fns = this.listeners.get(event);
-        if(!fns || fns.size === 0) return [];
-        const out: Settled[] = [];
-        for (const fn of fns) {
-          try {
-              await fn(...args);
-              out.push({ status: "fulfilled" });
-          }
-          catch(err) {
-              out.push({ status: "rejected", reason: err });
-              if(stopOnError) break;
-          }
+        if(_listeners){
+            for(const _listener of _listeners) {
+                await _listener(...args);
+            }
         }
-        return out;
     }
 
     listenerCount(event: string): number {

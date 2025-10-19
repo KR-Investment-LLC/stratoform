@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+import { Deployment } from "../core/Deployment";
 import { IConfig } from "../core/IConfig";
 import { Resource } from "../core/Resource";
 import { ResourceComposite } from "../core/ResourceComposite";
@@ -41,21 +42,12 @@ export interface ISubscriptionConfig extends IConfig {
     workloadType?: WorkloadType
 }
 
-/**
- * @description Marker class to identify children of a Subscription
- */
-export abstract class SubscriptionChild<C extends IConfig> extends Resource<C> {}
 
-/**
- * @description Marker class to identify children of a Subscription that can have children
- */
-export abstract class SubscriptionCompositeChild<C extends IConfig> extends ResourceComposite<C, SubscriptionChild<any>> {}
-
-export type SubscriptionChildType = SubscriptionChild<any> | SubscriptionCompositeChild<any>;
+export type SubscriptionChildType<C extends IConfig> = Resource<C, Subscription> | ResourceComposite<C, Resource<C, Subscription>, Subscription>;
 
 /**
  * 
  */
-export class Subscription extends ResourceComposite<ISubscriptionConfig, SubscriptionChildType> {
+export class Subscription extends ResourceComposite<ISubscriptionConfig, SubscriptionChildType<any>, Deployment> {
     //
 }

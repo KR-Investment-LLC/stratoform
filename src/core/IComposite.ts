@@ -22,14 +22,14 @@
  * SOFTWARE.
  */
 
+import { Deployment } from "./Deployment";
 import { Resource } from "./Resource";
 
 /**
  * 
  */
-export interface IComposite<D extends Resource<any>> {
-    addResource(dependent: D): this;
-    removeResource(dependentOrName: D | string): D | undefined;
-    getResource(name: string): D | undefined;
-    readonly resources: Iterable<D>;
+export interface IComposite<D extends Resource<any, any> | Deployment> {
+    deployDependent(dependent: D): this;
+    getDependent(name: string): D | undefined;
+    readonly dependents: Iterable<D>;
 }

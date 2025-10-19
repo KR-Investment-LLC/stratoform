@@ -34,18 +34,19 @@ export interface IVariableConfig<T> {
     validations?:  IValidator<T>[];
 };
 
+export const VariableEvents = {
+    define:          "define"          as const,
+    beforeValueSet:  "beforeValueSet"  as const,
+    afterValueSet:   "afterValueSet"   as const,
+    beforeValidate:  "beforeValidate"  as const,
+    afterValidate:   "afterValidate"   as const,
+    validationError: "validationError" as const
+};
+
 /**
  * 
  */
 export class Variable<T, C extends IVariableConfig<T> = IVariableConfig<T>> extends AsyncEventEmitter {
-    static EVENTS = {
-        define:          "define"          as const,
-        afterValueSet:   "afterValueSet"   as const,
-        beforeValidate:  "beforeValidate"  as const,
-        afterValidate:   "afterValidate"   as const,
-        validationError: "validationError" as const
-    };
-
     private _name:   string;
     private _config: C;
 
@@ -77,8 +78,8 @@ export class Variable<T, C extends IVariableConfig<T> = IVariableConfig<T>> exte
 
     static define<T, C extends IVariableConfig<T> = IVariableConfig<T>, TR extends Variable<T, C> = Variable<T, C>>(
             this: new (name: string, config?: C) => TR, name: string, config?: C, fn?: (self: TR) => void | Promise<void>): TR {
-        const self = new this(name, config);
-        if(fn) self.on(Variable.EVENTS.define, () => fn(self));
-        return self;
+        const _instance = new this(name, config);
+        if(fn) _instance.on(VariableEvents.define, () => fn(_instance));
+        return _instance;
     }
 }

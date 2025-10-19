@@ -22,8 +22,11 @@
  * SOFTWARE.
  */
 
+import { Deployment } from "../../core/Deployment";
 import { IConfig } from "../../core/IConfig";
-import { VirtualNetworkChild } from "./VirtualNetwork";
+import { Resource } from "../../core/Resource";
+import { IContext } from "../../runtime/Context";
+import { VirtualNetwork } from "./VirtualNetwork";
 
 /**
  * 
@@ -35,6 +38,9 @@ export interface ISubnetConfig extends IConfig {
 /**
  * 
  */
-export class Subnet extends VirtualNetworkChild<ISubnetConfig> {
-    //
+export class Subnet extends Resource<ISubnetConfig, VirtualNetwork> {
+    async handleValidateEvent(resource: this, deployment: Deployment, context: IContext): Promise<void> {
+        if(!(this.parent instanceof VirtualNetwork))
+            throw new Error(`Subnet must be a child of VirtualNetwork.`);
+    }
 }

@@ -23,9 +23,10 @@
  */
 
 import { IConfig } from "../core/IConfig";
+import { Resource } from "../core/Resource";
+import { ResourceComposite } from "../core/ResourceComposite";
 import { 
-    SubscriptionChild, 
-    SubscriptionCompositeChild 
+    Subscription
 } from "./Subscription";
 
 /**
@@ -35,18 +36,12 @@ export interface IResourceGroupConfig extends IConfig {
     //
 };
 
-/**
- * @description Marker class to identify dependents of a ResourceGroup
- */
-export abstract class ResourceGroupChild<C extends IConfig> extends SubscriptionChild<C> {}
 
-export abstract class ResourceGroupCompositeChild<C extends IConfig> extends SubscriptionCompositeChild<C> {}
-
-export type ResourceGroupChildType = ResourceGroupChild<any> | ResourceGroupCompositeChild<any>;
+export type ResourceGroupChild<C extends IConfig> = Resource<C, ResourceGroup> | ResourceComposite<C, Resource<C, ResourceGroup>, ResourceGroup>;
 
 /**
  * 
  */
-export class ResourceGroup  extends SubscriptionCompositeChild<IResourceGroupConfig> {
+export class ResourceGroup extends ResourceComposite<IResourceGroupConfig, ResourceGroupChild<any>, Subscription> {
     //
 }

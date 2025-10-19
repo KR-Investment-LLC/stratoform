@@ -25,7 +25,10 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import fg from "fast-glob";
-import { AsyncEventEmitter } from "../core/AsyncEventEmitter";
+import { 
+    AsyncEventEmitter, 
+    IAsyncEventEmitter 
+} from "../core/AsyncEventEmitter";
 import { IContext } from "./Context";
 import { 
     Deployment, 
@@ -35,7 +38,7 @@ import {
 /**
  * @description
  */
-export interface IRuntime {
+export interface IRuntime extends IAsyncEventEmitter {
     readonly context: IContext;
 
     /**
@@ -48,6 +51,42 @@ export interface IRuntime {
  * @description Factory method for creating a user-defined context.
  */
 export type RuntimeFactory = (context: IContext) => BaseRuntime;
+
+export const RuntimeEvents = {
+        beforeRun:             "beforeRun"             as const,
+        afterRun:              "afterRun"              as const,
+        runError:              "runError"              as const,
+        beforeLoadDeployments: "beforeLoadDeployments" as const,
+        afterLoadDeployments:  "afterLoadDeployments"  as const,
+        loadDeploymentsError:  "loadDeploymentsError"  as const,
+        beforeLoadDeployment:  "beforeLoadDeployment"  as const,
+        afterLoadDeployment:   "afterLoadDeployment"   as const,
+        loadDeploymentError:   "loadDeploymentError"   as const,
+        beforeLoadState:       "beforeLoadState"       as const,
+        afterLoadState:        "afterLoadState"        as const,
+        loadStateError:        "loadStateError"        as const,
+        beforeDefine:          "beforeDefine"          as const,
+        afterDefine:           "afterDefine"           as const,
+        definitionError:       "definitionError"       as const,
+        beforeValidate:        "beforeValidate"        as const, 
+        afterValidate:         "afterValidate"         as const,
+        validationError:       "validationError"       as const,
+        beforeSpecutlate:      "beforeSpecutlate"      as const,
+        afterSpecutlate:       "afterSpecutlate"       as const,
+        speculationError:      "speculationError"      as const,
+        beforeReadState:       "beforeReadState"       as const,
+        afterReadState:        "afterReadState"        as const,
+        readStateError:        "readStateError"        as const,
+        beforeSyncState:       "beforeSyncState"       as const,
+        afterSyncState:        "afterSyncState"        as const,
+        syncStateError:        "syncStateError"        as const,
+        beforeDeploy:          "beforeDeploy"          as const,
+        afterDeploy:           "afterDeploy"           as const,
+        deploymentError:       "deploymentError"       as const,
+        beforeDestroy:         "beforeDestroy"         as const,
+        afterDestroy:          "afterDestroy"          as const,
+        destroyError:          "destroyError"          as const
+    };
 
 /**
  * 
@@ -62,7 +101,12 @@ function isDeployment(x: unknown): x is Deployment {
  * @description
  */
 export class BaseRuntime extends AsyncEventEmitter implements IRuntime {
-    public _context!: IContext;
+    protected _context: IContext;
+
+    constructor(context: IContext) {
+        super();
+        this._context = context;
+    }
 
     private async loadDeployments() {
         // Find files by include/exclude paths
@@ -75,9 +119,11 @@ export class BaseRuntime extends AsyncEventEmitter implements IRuntime {
         // Loop through and load files default deployments
         for (const _file of _files) {
             this._context.log.debug(`Processing file '${_file}'...`);
-            const _deployment: Deployment = await BaseRuntime.importDefault<Deployment>(_file, isDeployment);
+            const _deployment: Deployment = await BaseRuntime.importDefault<Deployment>(_file, isDeployment, this);
+            await this.emit(RuntimeEvents.beforeLoadDeployment, this, _deployment);
             this._context.log.debug(`Adding deployment '${_deployment.alias}'.`);
             this._context.addDeployment(_deployment);
+            await this.emit(RuntimeEvents.afterLoadDeployment, this, _deployment);
             this._context.log.debug(`'${_file}' processed.`);
         }
     }
@@ -90,10 +136,24 @@ export class BaseRuntime extends AsyncEventEmitter implements IRuntime {
         this._context.log.debug(`Using file pattern '${JSON.stringify(this._context.config.pattern)}'.`);
         this._context.log.debug(`Excluding file pattern '${JSON.stringify(this._context.config.exclude)}'.`);
 
-        // Load the files.
-        await this.loadDeployments();
+        try {
+            await this.emit(RuntimeEvents.beforeRun, this);
 
-        // start the event lifecycle.
+            // Loading the plugins
+            
+            // Loading the depoyments
+            await this.emit(RuntimeEvents.beforeLoadDeployments, this);
+            await this.loadDeployments();
+            await this.emit(RuntimeEvents.afterLoadDeployments, this);
+
+            // start the event lifecycle.
+        }
+        catch(err) {
+            await this.emit(RuntimeEvents.runError, this, err);
+        }
+        finally {
+            await this.emit(RuntimeEvents.afterRun, this);
+        }
     }
 
     /**
@@ -108,13 +168,13 @@ export class BaseRuntime extends AsyncEventEmitter implements IRuntime {
      * @param file 
      * @returns 
      */
-    private static async importDefault<T extends Deployment>(file: string, isT: (v: unknown) => v is T): Promise<T> {
+    private static async importDefault<T extends Deployment>(file: string, isT: (v: unknown) => v is T, runtime: IRuntime): Promise<T> {
         const _url = pathToFileURL(path.resolve(file)).href;
         const _mod = await import(_url);
         if(!("default" in _mod))
             throw new Error(`No default export in ${file}`);
         let _val = (_mod as { default: unknown }).default;
-        _val     = typeof _val === "function" ? await (_val as any)() : _val;
+        _val     = typeof _val === "function" ? await (_val as any)(runtime) : _val;
         if(!isT(_val)) {
             let preview = "";
             try { 
@@ -138,7 +198,5 @@ export class BaseRuntime extends AsyncEventEmitter implements IRuntime {
  * @param factory 
  */
 export function createRuntime(context: IContext, factory?: RuntimeFactory): IRuntime {
-    const _runtime: BaseRuntime = (factory)? factory(context) : new BaseRuntime();
-    _runtime._context = context;
-    return _runtime;
+    return (factory)? factory(context) : new BaseRuntime(context);
 }

@@ -23,10 +23,9 @@
  */
 
 import { IConfig } from "../../core/IConfig";
-import { 
-    ResourceGroupChild, 
-    ResourceGroupCompositeChild 
-} from "../ResourceGroup";
+import { Resource } from "../../core/Resource";
+import { ResourceComposite } from "../../core/ResourceComposite";
+import { ResourceGroup } from "../ResourceGroup";
 import { Subnet } from "./Subnet";
 
 /**
@@ -36,26 +35,19 @@ export interface IVirtualNetworkConfig extends IConfig {
     
 };
 
-/**
- * @description Marker class to identify dependents of a VirtualNetwork
- */
-export abstract class VirtualNetworkChild<C extends IConfig> extends ResourceGroupChild<C> {}
-
-export abstract class VirtualNetworkChildCompositeChild<C extends IConfig> extends ResourceGroupCompositeChild<C> {}
-
-export type VirtualNetworkChildType = VirtualNetworkChild<any> | VirtualNetworkChildCompositeChild<any>;
+export type ResourceGroupChild<C extends IConfig> = Resource<C, VirtualNetwork> | ResourceComposite<C, Resource<C, VirtualNetwork>, VirtualNetwork>;
 
 /**
  * 
  */
-export class VirtualNetwork  extends ResourceGroupCompositeChild<IVirtualNetworkConfig> {
+export class VirtualNetwork  extends ResourceComposite<IVirtualNetworkConfig, ResourceGroupChild<any>, ResourceGroup>  {
 
     /**
      * @description 
      * @param subnet 
      * @returns 
      */
-    addSubnet(subnet: Subnet): this {
-        return this.addResource(subnet);
+    deploySubnet(subnet: Subnet): this {
+        return this.deployDependent(subnet);
     }
 }

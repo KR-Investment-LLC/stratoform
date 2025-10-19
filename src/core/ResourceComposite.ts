@@ -23,27 +23,24 @@
  */
 
 import { CompositeMap } from "./CompositeMap";
+import { Deployment } from "./Deployment";
 import { IComposite } from "./IComposite";
 import { IConfig } from "./IConfig";
 import { Resource } from "./Resource";
 
-export abstract class ResourceComposite<C extends IConfig, D extends Resource<any>> extends Resource<C> implements IComposite<D> {
-    private _composite: CompositeMap<this, D> = new CompositeMap<this, D>(this);
+export abstract class ResourceComposite<C extends IConfig, D extends Resource<any, any>, P extends Resource<any, any> | Deployment| undefined = undefined> extends Resource<C, P> implements IComposite<D> {
+    private _composite = new CompositeMap<this, D>(this);
 
-    addResource(resource: D): this { 
-        this._composite.addResource(resource);
+    deployDependent(resource: D): this { 
+        this._composite.deployDependent(resource);
         return this;
     }
 
-    removeResource(resource: D | string): D | undefined { 
-        return this._composite.removeResource(resource); 
+    getDependent(alias: string):  D | undefined { 
+        return this._composite.getDependent(alias); 
     }
 
-    getResource(alias: string):  D | undefined { 
-        return this._composite.getResource(alias); 
-    }
-
-    get resources(): Iterable<D> { 
-        return this._composite.resources; 
+    get dependents(): Iterable<D> { 
+        return this._composite.dependents; 
     }
 }

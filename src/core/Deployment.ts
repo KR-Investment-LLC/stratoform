@@ -23,10 +23,30 @@
  */
 
 import { AsyncEventEmitter } from "./AsyncEventEmitter";
+import { CompositeMap } from "./CompositeMap";
+import { Dependable, IDependable } from "./Dependable";
 import { Resource } from "./Resource";
 import { Variable } from "./Variable";
 
 export const DEPLOYMENT_VERSION = Symbol.for("Stratoform.Deployment/v1.0.0");
+
+/** 
+ * Event names the base class uses 
+ */
+export const DeploymentEvents = {
+    beforeValidate:   "beforeValidate"   as const, 
+    validate:         "validate"         as const,
+    afterValidate:    "afterValidate"    as const,
+    validationError:  "validationError"  as const,
+    beforeSpecutlate: "beforeSpecutlate" as const,
+    specutlate:       "specutlate"       as const,
+    afterSpecutlate:  "afterSpecutlate"  as const,
+    speculationError: "speculationError" as const,
+    beforeDeploy:     "beforeDeploy"     as const,
+    deploy:           "deploy"           as const,
+    afterDeploy:      "afterDeploy"      as const,
+    deploymentError:  "deploymentError"  as const
+};
 
 /**
  * @description
@@ -38,30 +58,17 @@ export interface IDeploymentConfig {
 /**
  * @description
  */
-export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends AsyncEventEmitter {
+export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends AsyncEventEmitter implements IDependable {
     public readonly [DEPLOYMENT_VERSION] = true;
 
-    /** 
-     * Event names the base class uses 
-     */
-    static readonly EVENTS = {
-        define:           "define"           as const,
-        beforeValidate:   "beforeValidate"   as const, 
-        afterValidate:    "afterValidate"    as const,
-        validationError:  "validationError"  as const,
-        beforeSpecutlate: "beforeSpecutlate" as const,
-        afterSpecutlate:  "afterSpecutlate"  as const,
-        speculationError: "speculationError" as const,
-        beforeDeploy:     "beforeDeploy"     as const,
-        afterDeploy:      "afterDeploy"      as const,
-        deploymentError:  "deploymentError"  as const
-    };
-
-    private _resources:   Map<string, Resource<any>>   = new Map<string, Resource<any>>();
-    private _variables:   Map<string, Variable<any>>   = new Map<string, Variable<any>>();
-    private _deployments: Map<string, Deployment<any>> = new Map<string, Deployment<any>>();
+    private _resources               = new CompositeMap<this, Resource<any, any>>(this);
+    private _variables               = new Map<string, Variable<any>>();
+    private _deployments             = new CompositeMap<this, Deployment>(this);
+    private _dependable:  Dependable = new Dependable();
     private _alias:       string;
     private _config:      C;
+
+    public parent: Deployment | undefined; // Will be set and enforced during deployment operations.
 
     constructor(alias: string, config: C) {
         super();
@@ -85,38 +92,23 @@ export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends
         this._config = config;
     }
 
-    addResource(resource: Resource<any>): this {
-        this._resources.set(resource.alias, resource);
+    deployResource(resource: Resource<any, any>): this {
+        this._resources.deployDependent(resource);
         return this;
     }
 
-    removeResource(resource: Resource<any> | string): Resource<any> | undefined {
-        const _key      = typeof resource === "string" ? resource : resource.alias;
-        const _existing = this._resources.get(_key);
-        if(_existing) this._resources.delete(_key);
-        return _existing;
+    getResource(alias: string): Resource<any, any> | undefined {
+        return this._resources.getDependent(alias);
     }
 
-    getResource(alias: string): Resource<any> | undefined {
-        return this._resources.get(alias);
-    }
-
-    get resources(): Iterable<Resource<any>> {
-        return this._resources.values();
+    get resources(): Iterable<Resource<any, any>> {
+        return this._resources.dependents;
     }
 
     addVariable(variable: Variable<any>): this {
         this._variables.set(variable.name, variable);
         return this;
     }
-
-    removeVariable(variable: Variable<any> | string): Variable<any> | undefined {
-        const _key      = typeof variable === "string" ? variable : variable.name;
-        const _existing = this._variables.get(_key);
-        if(_existing) this._variables.delete(_key);
-        return _existing;
-    }
-
     getVariable(name: string): Variable<any> | undefined {
         return this._variables.get(name);
     }
@@ -126,23 +118,28 @@ export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends
     }
 
     addDeployment(deployment: Deployment<any>): this {
-        this._deployments.set(deployment.alias, deployment);
+        this._deployments.deployDependent(deployment);
         return this;
     }
 
-    removedeployment(deployment: Deployment<any> | string): Deployment<any> | undefined {
-        const _key      = typeof deployment === "string" ? deployment : deployment.alias;
-        const _existing = this._deployments.get(_key);
-        if(_existing) this._deployments.delete(_key);
-        return _existing;
-    }
-
-    getdeployment(name: string): Deployment<any> | undefined {
-        return this._deployments.get(name);
+    getDeployment(name: string): Deployment<any> | undefined {
+        return this._deployments.getDependent(name);
     }
 
     get deployments(): Iterable<Deployment<any>> {
-        return this._deployments.values();
+        return this._deployments.dependents;
+    }
+
+    dependsOn(...items: IDependable[]): void {
+        this._dependable.dependsOn(...items);
+    }
+
+    async ready(): Promise<void> {
+        return this._dependable.ready();
+    }
+
+    async resolve(): Promise<void> {
+        return this._dependable.resolve();
     }
 
     /**
@@ -153,10 +150,10 @@ export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends
      * @param fn 
      * @returns 
      */
-    static define<TR extends Deployment<any>, C>(this: new (alias: string, config: C) => TR, alias: string, config: C, fn?: (self: TR) => void | Promise<void> ): TR {
-        const _self = new this(alias, config);
-        if(fn) _self.on(Deployment.EVENTS.define, () => fn(_self));
-        return _self;
+    static deploy<TR extends Deployment<any>, C>(this: new (alias: string, config: C) => TR, alias: string, config: C, fn?: (self: TR) => void | Promise<void> ): TR {
+        const _instance = new this(alias, config);
+        if(fn) _instance.on(DeploymentEvents.deploy, () => fn(_instance));
+        return _instance;
     }
 
     /**
