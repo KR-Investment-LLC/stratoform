@@ -62,7 +62,8 @@ export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends
     public readonly [DEPLOYMENT_VERSION] = true;
 
     private _resources               = new CompositeMap<this, Resource<any, any>>(this);
-    private _variables               = new Map<string, Variable<any>>();
+    private _inputs                  = new Map<string, Variable<any>>();
+    private _outputs                 = new Map<string, Variable<any>>();
     private _deployments             = new CompositeMap<this, Deployment>(this);
     private _dependable:  Dependable = new Dependable();
     private _alias:       string;
@@ -92,38 +93,80 @@ export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends
         this._config = config;
     }
 
+    deployResources(...resources: Resource<any, any>[]): this {
+        this._resources.deployDependents(...resources);
+        return this;
+    }
+
     deployResource(resource: Resource<any, any>): this {
         this._resources.deployDependent(resource);
         return this;
     }
 
-    getResource(alias: string): Resource<any, any> | undefined {
-        return this._resources.getDependent(alias);
+    getResource(alias: string, failIfUndefined: boolean = false): Resource<any, any> | undefined {
+        return this._resources.getDependent(alias, failIfUndefined);
     }
 
     get resources(): Iterable<Resource<any, any>> {
         return this._resources.dependents;
     }
 
-    addVariable(variable: Variable<any>): this {
-        this._variables.set(variable.name, variable);
+    declareInput(variable: Variable<any>): this {
+        this._inputs.set(variable.name, variable);
         return this;
     }
-    getVariable(name: string): Variable<any> | undefined {
-        return this._variables.get(name);
+
+    declareInputs(...variables: Variable<any>[]): this {
+        for(const _variable of variables) {
+            this.declareInput(_variable);
+        }
+        return this;
     }
 
-    get variables(): Iterable<Variable<any>> {
-        return this._variables.values();
+    getInput(name: string): Variable<any> | undefined {
+        return this._inputs.get(name);
     }
 
-    addDeployment(deployment: Deployment<any>): this {
+    get inputs(): Iterable<Variable<any>> {
+        return this._inputs.values();
+    }
+
+    declareOutput(variable: Variable<any>): this {
+        this._outputs.set(variable.name, variable);
+        return this;
+    }
+
+    declareOutputs(...variables: Variable<any>[]): this {
+        for(const _variable of variables) {
+            this.declareOutput(_variable);
+        }
+        return this;
+    }
+
+    getOutput(name: string): Variable<any> | undefined {
+        return this._outputs.get(name);
+    }
+
+    setOutput(name: string, value: any): void {
+        // TODO: Populate this.
+    }
+
+    get outputs(): Iterable<Variable<any>> {
+        return this._outputs.values();
+    }
+    
+    linkDeployment(deployment: Deployment<any>): this {
         this._deployments.deployDependent(deployment);
         return this;
     }
 
-    getDeployment(name: string): Deployment<any> | undefined {
-        return this._deployments.getDependent(name);
+    linkDeployments(...deployments: Deployment<any>[]): this {
+        this._deployments.deployDependents(...deployments);
+        return this;
+    }
+
+    getDeployment(name: string, failIfUndefined: boolean  = false): Deployment<any> | undefined {
+        return this._deployments.getDependent(name, failIfUndefined);
     }
 
     get deployments(): Iterable<Deployment<any>> {
@@ -136,10 +179,6 @@ export class Deployment<C extends IDeploymentConfig = IDeploymentConfig> extends
 
     async ready(): Promise<void> {
         return this._dependable.ready();
-    }
-
-    async resolve(): Promise<void> {
-        return this._dependable.resolve();
     }
 
     /**

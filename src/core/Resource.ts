@@ -26,7 +26,10 @@ import { IContext } from "../runtime/Context";
 import { AsyncEventEmitter } from "./AsyncEventEmitter";
 import { Deployment } from "./Deployment";
 import { IConfig } from "./IConfig";
-import { Dependable, IDependable } from "./Dependable";
+import { 
+    Dependable, 
+    IDependable 
+} from "./Dependable";
 
 /** 
  * @description Event names the base class uses 
@@ -81,11 +84,23 @@ export type DeploymentListener<TR extends Resource<any, any>> =
 export type DeploymentErrorListener<TR extends Resource<any, any>> = 
         (resource: TR, operation: ResourceOperation, error: any, deployment?: Deployment, context?: IContext, filter?: any) => Promise<void> | void;
 
+/**
+ * @description Creates a proxy handle to use the dependanble interface to suspend get responses until
+ * @param config 
+ * @param dependent 
+ * @returns 
+ */
+function createDependableConfig<C extends IConfig>(config: C, dependent: IDependable): C {
+
+    //
+    return config;
+}
+
 /** 
  * @description Every resource has a name, config, and is an async event emitter. 
  */
 export abstract class Resource<C extends IConfig, P extends Resource<any, any> | Deployment | undefined> extends AsyncEventEmitter implements IDependable {
-    private __stateId:   string | undefined;
+    private _stateId:    string | undefined;
     private _alias:      string;
     private _config:     C;
     private _operation:  ResourceOperation = ResourceOperation.Define;
@@ -101,7 +116,7 @@ export abstract class Resource<C extends IConfig, P extends Resource<any, any> |
     constructor(alias: string, config: C) { 
         super(); 
         this._alias  = alias;
-        this._config = config;
+        this._config = createDependableConfig<C>(config, this);
 
         // set up the callbacks for the resource operations.
         this.on(ResourceEvents.validate,  this.handleValidateEvent);
@@ -152,7 +167,7 @@ export abstract class Resource<C extends IConfig, P extends Resource<any, any> |
     }
 
     get stateId(): string | undefined {
-        return this.__stateId;
+        return this._stateId;
     }
 
     get alias(): string {
@@ -168,14 +183,14 @@ export abstract class Resource<C extends IConfig, P extends Resource<any, any> |
     }
 
     set config(config: C) {
-        this._config = config;
+        this._config = createDependableConfig<C>(config, this);
     }
 
     get operation(): ResourceOperation {
         return this._operation;
     }
 
-    dependsOn(...items: IDependable[]): void {
+    dependsOn(...items: (IDependable | undefined)[]): void {
         this._dependable.dependsOn(...items);
     }
 
@@ -184,15 +199,17 @@ export abstract class Resource<C extends IConfig, P extends Resource<any, any> |
     }
 
     /**
-     * @description 
-     * @param this   
-     * @param name   
-     * @param config 
-     * @param fn     
+     * @description       Static constructor to create a new resource for deployment.
+     * @param alias       The alias for this resource in stratoform, nor the name of the resource in your cloud provider. 
+     * @param config      The config for this resource
+     * @param [fn]        The deploy event callback for this resource 
+     * @param [dependsOs] Expanded array of resources or deployments this resource is dependent on.
      * @returns 
      */
-    static deploy<TR extends Resource<any, any>, C extends IConfig>(this: new (alias: string, config: C) => TR, alias: string, config: C, fn?: DeploymentListener<TR>): TR {
+    static deploy<TR extends Resource<any, any>, C extends IConfig>(
+                    this: new (alias: string, config: C) => TR, alias: string, config: C, fn?: DeploymentListener<TR>, ...dependsOs: (IDependable | undefined)[]): TR {
         const _instance = new this(alias, config);
+        _instance.dependsOn(...dependsOs);
         if(fn) _instance.on(ResourceEvents.deploy, fn);
         return _instance;
     }

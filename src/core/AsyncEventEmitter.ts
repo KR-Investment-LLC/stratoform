@@ -82,7 +82,6 @@ export class AsyncEventEmitter implements IAsyncEventEmitter {
 
     async emit(event: string, ...args: any[]): Promise<void> {
         const _listeners = this.listeners.get(event);
-
         if(_listeners){
             for(const _listener of _listeners) {
                 await _listener(...args);

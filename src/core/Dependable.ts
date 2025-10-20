@@ -29,7 +29,7 @@ export interface IDependable {
     /** 
      * @description Register dependencies this instance must await before resolving. 
      */
-     dependsOn(...items: IDependable[]): void;
+     dependsOn(...items: (IDependable | undefined)[]): void;
 
     /** 
      * @description Resolves when this instance is fully ready. Safe to call multiple times.
@@ -51,8 +51,8 @@ export class Dependable implements IDependable {
         });
     }
 
-    dependsOn(...items: IDependable[]): void {
-        this._dependents.push(...items);
+    dependsOn(...items: (IDependable | undefined)[]): void {
+        this._dependents.push(...items.filter((d): d is IDependable => d !== undefined));
     }
 
     async ready(): Promise<void> {

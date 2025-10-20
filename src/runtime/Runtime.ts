@@ -110,7 +110,7 @@ export class BaseRuntime extends AsyncEventEmitter implements IRuntime {
 
     private async loadDeployments() {
         // Find files by include/exclude paths
-        const _files = await fg(this._context.config.pattern, {
+        const _files = await fg(this._context.config.include, {
             ignore:   this._context.config.exclude,
             cwd:      this._context.config.workingDirectory,
             absolute: true, // optional, returns full paths
@@ -133,7 +133,7 @@ export class BaseRuntime extends AsyncEventEmitter implements IRuntime {
      */
     async run(): Promise<void> {
         this._context.log.info(`Running stratoform in '${this._context.config.workingDirectory}'`);
-        this._context.log.debug(`Using file pattern '${JSON.stringify(this._context.config.pattern)}'.`);
+        this._context.log.debug(`Including file pattern '${JSON.stringify(this._context.config.include)}'.`);
         this._context.log.debug(`Excluding file pattern '${JSON.stringify(this._context.config.exclude)}'.`);
 
         try {
@@ -147,6 +147,7 @@ export class BaseRuntime extends AsyncEventEmitter implements IRuntime {
             await this.emit(RuntimeEvents.afterLoadDeployments, this);
 
             // start the event lifecycle.
+            // TODO: Loop through each deployment and asyn run the deploy function (dependsOn will handle all the)
         }
         catch(err) {
             await this.emit(RuntimeEvents.runError, this, err);

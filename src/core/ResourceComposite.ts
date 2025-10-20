@@ -36,8 +36,13 @@ export abstract class ResourceComposite<C extends IConfig, D extends Resource<an
         return this;
     }
 
-    getDependent(alias: string):  D | undefined { 
-        return this._composite.getDependent(alias); 
+    deployDependents(...resources: D[]): this { 
+        this._composite.deployDependents(...resources);
+        return this;
+    }
+
+    getDependent(alias: string, failIfUndefined: boolean = false):  D | undefined { 
+        return this._composite.getDependent(alias, failIfUndefined); 
     }
 
     get dependents(): Iterable<D> { 

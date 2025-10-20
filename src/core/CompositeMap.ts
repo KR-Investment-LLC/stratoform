@@ -30,7 +30,7 @@ import { Resource } from "./Resource";
  * Reusable manager for dependents; enforces parent wiring to Self. 
  */
 export class CompositeMap<Owner extends Resource<any, any> | Deployment, D extends Resource<any, any> | Deployment> implements IComposite<D> {
-    private readonly _resources    = new Map<string, D>();
+    private readonly _dependents    = new Map<string, D>();
     private readonly _owner: Owner
 
     constructor(owner: Owner) {
@@ -39,26 +39,29 @@ export class CompositeMap<Owner extends Resource<any, any> | Deployment, D exten
 
     deployDependent(resource: D): this {
         resource.parent = this._owner;
-        this._resources.set(resource.alias, resource);
+        this._dependents.set(resource.alias, resource);
         return this;
     }
 
-    getDependent(alias: string): D | undefined {
-        return this._resources.get(alias);
+    deployDependents(...dependents: D[]): this {
+        for(const _dependent of dependents) {
+            this.deployDependent(_dependent);
+        }
+        return this;
+    }
+
+    getDependent(alias: string, failIfUndefined: boolean = false): D | undefined {
+        const _dependent = this._dependents.get(alias);
+        if(failIfUndefined && !_dependent) 
+            throw new Error(`Dependent '${alias}' not found and failIfUndefined was true.`);
+        return _dependent;
+    }
+
+    hasDependent(alias: string): boolean {
+        return this._dependents.has(alias);
     }
 
     get dependents(): Iterable<D> {
-        return this._resources.values();
-    }
-
-    async emit(event: string, ...args: any[]): Promise<void> {
-        
-        // const _listeners = this.listeners.get(event);
-
-        // if(_listeners){
-        //     for(const _listener of _listeners) {
-        //         await _listener(...args);
-        //     }
-        // }
+        return this._dependents.values();
     }
 }

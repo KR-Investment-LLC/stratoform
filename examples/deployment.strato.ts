@@ -32,24 +32,23 @@ import { Variable } from "../src/core/Variable";
 export default Deployment.deploy("MyApplicationInfrastructureDeployment", {}, 
     (myApplicationInfrastructureDeployment) => {
         myApplicationInfrastructureDeployment
-            // Add the variables
-            .addVariable(Variable.define<string>("environment", {
+        .declareInputs(
+            Variable.declare<string>("environment", {
                 required: true
-            }))
-            .addVariable(Variable.define<string>("criticallity", {
+            }),
+            Variable.declare<string>("criticallity", {
                 required: true
-            }))
-            // Now the resources, starting with the subscription
-            .deployResource(Subscription.deploy("MySubscriptionOne", {
+            })
+        )
+        // Now the resources, starting with the subscription
+        .deployResource(Subscription.deploy("MySubscriptionOne", {
                 name:         "my-subscription-one-sub",
                 workloadType: WorkloadType.Production
             }, 
-            (mySubscription: Subscription) => {
-                console.log(`Subscription defining '${mySubscription.config.name}'...`);
+            (mySubscriptionOne: Subscription) => {
                 // add the first resource group.
-                mySubscription
-                    // Add the first resource group.
-                    .deployDependent(ResourceGroup.deploy("MyResourceGroupOne", {
+                mySubscriptionOne.deployDependents(
+                    ResourceGroup.deploy("MyResourceGroupOne", {
                             name: "my-resource-group-one-rg",
                         }, 
                         (myResourceGroupOne: ResourceGroup) => {        
@@ -63,12 +62,15 @@ export default Deployment.deploy("MyApplicationInfrastructureDeployment", {},
                                     name: "main-subnet"
                                 }));
                             }));
-                        }))
-                    // Add the second resource group.
-                    .deployDependent(ResourceGroup.deploy("MyResourceGroupTwo", {
-                        name: "my-resource-group-two-rg",
-                    }, (myResourceGroupTwo: ResourceGroup) => {
-                        // Add the VNET to resource group 1
-                    }));
-            }));
+                    }),
+                    ResourceGroup.deploy("MyResourceGroupTwo", {
+                            name: "my-resource-group-two-rg",
+                        }, 
+                        (myResourceGroupTwo: ResourceGroup) => {
+                            // Add the VNET to resource group 1
+                        },
+                        mySubscriptionOne.getDependent("MyResourceGroupOne", true)
+                    )
+                )
+        }));
 });

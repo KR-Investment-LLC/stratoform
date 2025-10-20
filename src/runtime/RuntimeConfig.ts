@@ -29,7 +29,7 @@ import _ from "lodash";
 export interface IRuntimeConfig {
     configPath:       string;
     workingDirectory: string;
-    pattern:          string;
+    include:          string[];
     exclude:          string[];
     logging:    {
         level:      string;
@@ -48,7 +48,9 @@ function createDefaultConfig(options: any): IRuntimeConfig {
     return {
         configPath:       options.configPath,
         workingDirectory: options.workingDirectory,
-        pattern:          "**/*.strato.ts",
+        include: [ 
+            "**/*.strato.ts"
+        ],
         exclude: [
             "**/node_modules/**",
             "**/dist/**",

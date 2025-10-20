@@ -30,6 +30,7 @@ import { Resource } from "./Resource";
  */
 export interface IComposite<D extends Resource<any, any> | Deployment> {
     deployDependent(dependent: D): this;
+    deployDependents(...dependents: D[]): this;
     getDependent(name: string): D | undefined;
     readonly dependents: Iterable<D>;
 }

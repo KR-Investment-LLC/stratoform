@@ -22,11 +22,10 @@
  * SOFTWARE.
  */
 
-import { AsyncEventEmitter } from "./AsyncEventEmitter";
 import { IValidator } from "./IValidator"
+import { AsyncEventEmitter } from "./AsyncEventEmitter";
 
 export interface IVariableConfig<T> {
-    value?:        T;
     defaultValue?: T ;
     required?:     boolean;
     secure?:       boolean;
@@ -35,7 +34,7 @@ export interface IVariableConfig<T> {
 };
 
 export const VariableEvents = {
-    define:          "define"          as const,
+    declare:         "declare"         as const,
     beforeValueSet:  "beforeValueSet"  as const,
     afterValueSet:   "afterValueSet"   as const,
     beforeValidate:  "beforeValidate"  as const,
@@ -49,11 +48,13 @@ export const VariableEvents = {
 export class Variable<T, C extends IVariableConfig<T> = IVariableConfig<T>> extends AsyncEventEmitter {
     private _name:   string;
     private _config: C;
+    private _value:  T | undefined;
 
     constructor(name: string, config: C = {} as C) {
         super();
         this._name   = name;
         this._config = config;
+        this._value  = this._config.defaultValue;
     }
 
     get name(): string {
@@ -69,17 +70,22 @@ export class Variable<T, C extends IVariableConfig<T> = IVariableConfig<T>> exte
     }
 
     get value(): T | undefined {
-        return this._config.value;
+        return this._value;
     }
 
-    set value(value: T) {
-        this._config.value = value;
+    async setValue(value: T): Promise<void> {
+        await this.emit(VariableEvents.beforeValidate, this, value);
+        // TODO: Validate
+        await this.emit(VariableEvents.afterValidate, this, value);
+        await this.emit(VariableEvents.beforeValueSet, this, value);
+        this._value = value;
+        await this.emit(VariableEvents.afterValueSet, this, value)
     }
 
-    static define<T, C extends IVariableConfig<T> = IVariableConfig<T>, TR extends Variable<T, C> = Variable<T, C>>(
-            this: new (name: string, config?: C) => TR, name: string, config?: C, fn?: (self: TR) => void | Promise<void>): TR {
+    static declare<T, C extends IVariableConfig<T> = IVariableConfig<T>, TR extends Variable<T, C> = Variable<T, C>>(
+            this: new (name: string, config?: C) => TR, name: string, config?: C, fn?: (self: TR) => Promise<void> | void): TR {
         const _instance = new this(name, config);
-        if(fn) _instance.on(VariableEvents.define, () => fn(_instance));
+        if(fn) _instance.on(VariableEvents.declare, () => fn(_instance));
         return _instance;
     }
 }
